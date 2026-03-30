@@ -138,6 +138,42 @@ var sections=[
 
 var groups=["All","Languages","English A","Sciences","Mathematics","Individuals & Societies","TOK","Extended Essay","CAS","The Arts","MYP"];
 
+
+var faqData=[
+{cat:"Students",items:[
+{q:"Can I use AI for homework?",a:"It depends on the task. Use LORIE before any interaction. AI for practice and feedback is usually fine. AI writing your work is never acceptable. When in doubt, ask your teacher."},
+{q:"Do I need to cite AI use?",a:"Yes, always. Describe the tool, what you asked, and how it influenced your thinking."},
+{q:"What if AI gives wrong information?",a:"This happens regularly. AI fabricates sources and presents bias confidently. Verification is non-negotiable."},
+{q:"Can I use AI for my Extended Essay?",a:"You can use AI to refine your RQ and get feedback on drafts YOU wrote. You cannot use it to write any part of it."},
+{q:"Is using AI cheating?",a:"Using AI transparently as a thinking tool is not cheating. Submitting AI-generated work as your own IS cheating."},
+{q:"Can I use AI for CAS reflections?",a:"No. CAS reflections must be authentically yours. AI has no access to your experiences or growth."},
+{q:"Best way to use AI for revision?",a:"Ask it to quiz you, generate practice questions, explain concepts, and identify weaknesses in your answers."},
+{q:"Can I use AI during exams?",a:"No, unless explicitly permitted by your teacher for a specific assessment."}]},
+{cat:"Teachers",items:[
+{q:"How do I detect AI use?",a:"Focus on designing tasks requiring visible thinking. Use Thinking Logs, process evidence, and in-class components."},
+{q:"Should I ban AI?",a:"The IB does not recommend banning. Structure use within AInquiry and LORIE. Teach responsible use."},
+{q:"AI-resistant assessments?",a:"Include personal reflection, in-class components, oral defence, process documentation, and unique contexts."},
+{q:"Students know more AI than me?",a:"That is an opportunity. Focus on your expertise: critical thinking, subject knowledge, assessment literacy."},
+{q:"How to use MAiLS in planning?",a:"Check where the tool sits on the scale. High-agency tools need AInquiry structure to protect thinking."},
+{q:"Can I use AI for materials?",a:"Yes, but apply the same critical evaluation you expect from students. Verify accuracy."},
+{q:"IB assessments specifically?",a:"Always check subject-specific guidance. IB requirements take precedence over school policy."},
+{q:"Suspected AI misuse?",a:"Follow academic integrity policy. Have a conversation first. Focus on education before punishment."}]},
+{cat:"Parents",items:[
+{q:"Is my child allowed to use AI?",a:"Yes, when used responsibly through the LORIE framework. AI supports learning but must not replace thinking."},
+{q:"How can I support at home?",a:"Ask: What did you learn? What did you change? Why? Encourage thinking before prompting."},
+{q:"Should I worry about integrity?",a:"We take this seriously. Students must acknowledge AI use. Our frameworks prevent misuse."},
+{q:"What if over-reliant on AI?",a:"Watch: can they explain work without AI? Do they struggle with AI-free tasks? Talk to teachers."},
+{q:"Is AI safe for my child?",a:"We recommend supervised use and approved tools. Never share personal information with AI."}]}
+];
+
+var atlData=[
+{name:"Thinking Skills",icon:"\u{1F9E0}",color:"#1B1464",risk:"HIGH",opp:"AI supports analysis and evaluation within AInquiry frameworks.",danger:"AI replaces thinking entirely. Students accept AI analysis as their own.",action:"Require students to annotate, critique, and reconstruct AI outputs."},
+{name:"Communication",icon:"\u{1F4AC}",color:"#2E75B6",risk:"MEDIUM",opp:"Chatbots offer low-stakes practice for language and argumentation.",danger:"Students stop developing their own communicative voice.",action:"Use AI for practice and feedback, not final communicative products."},
+{name:"Social Skills",icon:"\u{1F91D}",color:"#3A8F8B",risk:"LOW",opp:"AI is one information source in collaborative tasks.",danger:"AI replaces genuine human collaboration.",action:"Ensure collaborative tasks involve real human interaction."},
+{name:"Self-Management",icon:"\u{1F4CB}",color:"#E8A317",risk:"MEDIUM",opp:"AI helps organise learning, set goals, plan effectively.",danger:"Over-reliance reduces independence and metacognition.",action:"Use the Thinking Log. Build reflection habits."},
+{name:"Research Skills",icon:"\u{1F50D}",color:"#8B4587",risk:"HIGH",opp:"AI is powerful for initial exploration and brainstorming.",danger:"Students cite AI sources without verification.",action:"ALL AI-suggested sources must be independently verified."}
+];
+
 </script>
 <script type="text/babel">
 const {useState}=React;
@@ -255,69 +291,254 @@ return <div style={{maxWidth:1100,margin:"0 auto",padding:"40px 20px"}}>
 }
 
 function Frameworks(){
-const[tab,setTab]=useState("ainquiry");
-const tabs=[{id:"ainquiry",l:"AInquiry"},{id:"mails",l:"MAiLS"},{id:"aio",l:"AIO Protocol"},{id:"offload",l:"Cognitive Offloading"}];
-const aq=[{l:"Iterate",c:NAVY,i:"\u{1F504}",d:"Commit to multiple iterations. A single prompt-response is not inquiry.",q:"Did I refine my prompt at least twice?"},
-{l:"Question",c:"#2E75B6",i:"\u2753",d:"Create questions of increasing complexity. Start with what you know.",q:"Are my questions getting more specific?"},
-{l:"Debunk",c:TEAL,i:"\u{1F50D}",d:"Correct AI information. Ensure outputs are authentic and accurate.",q:"Have I verified every fact?"},
-{l:"Collaborate",c:AMBER,i:"\u{1F91D}",d:"Connect with humans to check data and test ideas. AI is one voice.",q:"Have I discussed this with a peer or teacher?"}];
-return <div style={{maxWidth:1000,margin:"0 auto",padding:"40px 20px"}}>
-<h1 style={{fontFamily:PF,color:NAVY,fontSize:36,marginBottom:24}}>Frameworks for AI in Learning</h1>
-<div style={{display:"flex",gap:4,marginBottom:32,background:LIGHT,borderRadius:12,padding:4}}>
-{tabs.map(t=><div key={t.id} onClick={()=>setTab(t.id)} style={{flex:1,background:tab===t.id?"#fff":"transparent",padding:"12px 8px",borderRadius:10,cursor:"pointer",fontFamily:DS,fontSize:14,fontWeight:tab===t.id?700:500,color:tab===t.id?NAVY:"#888",textAlign:"center",boxShadow:tab===t.id?"0 2px 8px rgba(0,0,0,0.08)":"none"}}>{t.l}</div>)}
+const[tab,setTab]=useState("overview");
+const tabs=[{id:"overview",l:"Overview"},{id:"ainquiry",l:"AInquiry"},{id:"mails",l:"MAiLS"},{id:"aio",l:"AIO + LORIE"},{id:"offload",l:"Offloading"},{id:"atlmap",l:"ATL Map"}];
+const S={t:{fontFamily:DS,fontSize:14,color:DK,lineHeight:1.7,margin:"0 0 12px"},h:{fontFamily:DS,fontWeight:700,fontSize:15,color:NAVY,margin:"0 0 6px"},sm:{fontFamily:DS,fontSize:12,color:"#888",lineHeight:1.5},box:{background:"#fff",borderRadius:12,border:"1px solid #e0e0e0",padding:20,marginBottom:14}};
+return <div style={{maxWidth:1000,margin:"0 auto",padding:"32px 20px"}}>
+<h1 style={{fontFamily:PF,color:NAVY,fontSize:32,marginBottom:8}}>Frameworks for Using AI in Learning</h1>
+<p style={S.t}>These frameworks give teachers and students a shared language for deciding when, how, and why to use AI. Each answers a different question. Together they form a complete system.</p>
+<div style={{display:"flex",gap:4,marginBottom:24,background:LIGHT,borderRadius:10,padding:4,overflowX:"auto",WebkitOverflowScrolling:"touch"}}>
+{tabs.map(t=><div key={t.id} onClick={()=>setTab(t.id)} style={{flex:"0 0 auto",background:tab===t.id?"#fff":"transparent",padding:"10px 14px",borderRadius:8,cursor:"pointer",fontFamily:DS,fontSize:13,fontWeight:tab===t.id?700:500,color:tab===t.id?NAVY:"#888",textAlign:"center",whiteSpace:"nowrap"}}>{t.l}</div>)}
 </div>
-{tab==="ainquiry"&&<div style={{display:"grid",gap:16}}>
-<p style={{fontFamily:DS,color:"#666",fontSize:15,lineHeight:1.7}}>The IB's AInquiry framework (2025) treats AI interaction as inquiry. Four components in any order:</p>
-{aq.map(a=><div key={a.l} style={{background:"#fff",border:"1px solid #e0e0e0",borderRadius:14,padding:24,borderLeft:"6px solid "+a.c,display:"flex",gap:20}}>
-<div style={{fontSize:36}}>{a.i}</div>
-<div style={{flex:1}}>
-<h3 style={{fontFamily:DS,color:a.c,margin:"0 0 8px",fontSize:20,fontWeight:700}}>{a.l}</h3>
-<p style={{fontFamily:DS,color:DK,margin:"0 0 12px",fontSize:15,lineHeight:1.6}}>{a.d}</p>
-<div style={{background:LIGHT,borderRadius:8,padding:"10px 14px",fontFamily:DS,fontSize:13,color:NAVY,fontWeight:600}}>Self-check: {a.q}</div>
-</div></div>)}
+
+{tab==="overview"&&<div>
+<div style={{background:CREAM,borderRadius:12,padding:20,marginBottom:16,borderLeft:"6px solid "+AMBER}}>
+<p style={S.h}>What problem does each framework solve?</p>
+</div>
+{[
+{fw:"AInquiry",full:"AI + Inquiry",q:"HOW should students interact with AI?",a:"Through a structured inquiry cycle: Iterate, Question, Debunk, Collaborate. Not a single prompt—a conversation.",color:NAVY,atl:"Thinking Skills, Research Skills"},
+{fw:"MAiLS",full:"Machine Agency in Learning Scale",q:"WHICH tools are appropriate?",a:"The higher a tool sits on the scale (pencil to chatbot), the more agency it has—and the greater the risk to student thinking.",color:TEAL,atl:"Self-Management Skills"},
+{fw:"AIO",full:"Awareness → Ideas → Outcomes",q:"WHEN should AI be used?",a:"AI is useful in Awareness (identifying gaps) and Ideas (exploring perspectives). It must never produce Outcomes—that's the student's work.",color:"#8B4587",atl:"Thinking, Communication Skills"},
+{fw:"LORIE",full:"Learning goal, Output, Role, Input, Evaluate",q:"WHAT should students think about before prompting?",a:"Five elements ensuring every AI interaction is purposeful. Can't define Learning goal and Input? Not ready for AI.",color:AMBER,atl:"Research, Self-Management Skills"},
+{fw:"Offloading vs Replacement",full:"IB distinction (2025)",q:"Is AI helping or interrupting?",a:"Offloading (calculator, grammar check) = AI assists while student thinks. Replacement (AI writes essay) = AI does the thinking.",color:"#CC3333",atl:"All ATL categories"}
+].map(f=><div key={f.fw} style={{...S.box,borderLeft:"6px solid "+f.color}}>
+<div style={{display:"flex",justifyContent:"space-between",flexWrap:"wrap",gap:8,marginBottom:8}}>
+<div><h3 style={{fontFamily:DS,fontWeight:800,fontSize:17,color:f.color,margin:0}}>{f.fw}</h3>
+<p style={{fontFamily:DS,fontSize:11,color:"#888",margin:"2px 0 0"}}>{f.full}</p></div>
+<span style={{background:LIGHT,borderRadius:6,padding:"4px 10px",fontFamily:DS,fontSize:11,color:NAVY,fontWeight:600}}>ATL: {f.atl}</span>
+</div>
+<p style={{fontFamily:DS,fontSize:13,color:NAVY,fontWeight:700,margin:"6px 0 4px"}}>{f.q}</p>
+<p style={{fontFamily:DS,fontSize:13,color:DK,lineHeight:1.6,margin:0}}>{f.a}</p>
+</div>)}
+<div style={{background:MINT,borderRadius:12,padding:16,borderLeft:"6px solid "+TEAL}}>
+<p style={S.h}>How they connect</p>
+<p style={{fontFamily:DS,fontSize:13,color:DK,lineHeight:1.6,margin:0}}>A teacher uses <strong>MAiLS</strong> to choose the tool, <strong>AInquiry</strong> to structure interaction, <strong>AIO</strong> to decide timing. Students use <strong>LORIE</strong> before every prompt. The <strong>Offloading test</strong> is the final check.</p>
+</div>
 </div>}
+
+{tab==="ainquiry"&&<div>
+<div style={{background:CREAM,borderRadius:12,padding:16,marginBottom:16,borderLeft:"6px solid "+AMBER}}>
+<h3 style={S.h}>AInquiry = AI + Inquiry</h3>
+<p style={{fontFamily:DS,fontSize:13,color:DK,lineHeight:1.6,margin:0}}>IB framework (June 2025) treating AI interaction as inquiry—"any activity aimed at extracting meaning from experience" (Audet & Jordan, 2005). Four components in any order, each with inquiry, action, and reflection.</p>
+</div>
+{[
+{l:"Iterate",c:NAVY,i:"\u{1F504}",d:"Commit to multiple iterations. A single prompt-response is not inquiry—it's task replacement.",
+ex:"Student asks about trade embargoes. First response is general. Follow-up: 'How do these differ from sanctions specifically?' Then: 'Give me a case where the distinction mattered for civilians.' Three prompts, each more precise.",
+atl:"Thinking Skills (critical thinking, transfer)—each iteration requires evaluating the previous response.",
+scaffold:"Require prompt history showing 3+ iterations. Each follow-up must reference something specific from the previous response.",
+q:"Did I refine at least twice? Does each follow-up build on the previous?"},
+{l:"Question",c:"#2E75B6",i:"\u2753",d:"Create questions of increasing complexity. Start with what you know, then explore what you don't.",
+ex:"Not 'Tell me about photosynthesis' but: 'What happens when light intensity exceeds saturation?' → 'Why does the rate plateau?' → 'How does this connect to limiting factors in other systems?'",
+atl:"Research Skills (formulating questions)—quality improves with practice. Self-Management (reflection)—monitoring question sophistication.",
+scaffold:"Question Ladder: Level 1 = What/When (factual), Level 2 = How/Why (explanatory), Level 3 = What if/So what (evaluative). Require at least one Level 3 per interaction.",
+q:"Am I at Level 3 on the Question Ladder?"},
+{l:"Debunk",c:TEAL,i:"\u{1F50D}",d:"Verify accuracy. Cross-reference with credible sources. Identify bias, oversimplification, cultural inaccuracies.",
+ex:"AI claims 'Gandhi's Salt March in 1928 was the turning point.' Student checks: it was 1930. Also evaluates: 'turning point' is debatable—some historians argue the Quit India Movement (1942) was more significant.",
+atl:"Thinking Skills (critical evaluation)—every claim assessed. Research Skills (information literacy)—distinguishing reliable from fabricated.",
+scaffold:"Traffic Light system: Green = verified. Amber = partially correct. Red = incorrect/fabricated. Students annotate AI outputs before using any information.",
+q:"Have I verified every claim? Checked for bias and cultural assumptions?"},
+{l:"Collaborate",c:AMBER,i:"\u{1F91D}",d:"Check with humans. AI is one voice. Discussion catches errors neither you nor AI noticed.",
+ex:"After AI brainstorms globalisation arguments, student shares with study group. One peer: 'All examples are Western economies.' Another: 'Missing indigenous perspectives.' Final argument is richer.",
+atl:"Social Skills (collaboration)—genuine human interaction is irreplaceable. Communication Skills (exchanging ideas)—articulating and defending thinking.",
+scaffold:"'Peer Check' step: before submitting, discuss AI ideas with one peer. Document what changed from that conversation.",
+q:"What changed because of my conversation with a peer?"}
+].map(a=><div key={a.l} style={{...S.box,borderLeft:"6px solid "+a.c}}>
+<div style={{display:"flex",gap:12,marginBottom:10}}>
+<div style={{fontSize:28,flexShrink:0}}>{a.i}</div>
+<div><h3 style={{fontFamily:DS,color:a.c,margin:"0 0 4px",fontSize:18,fontWeight:800}}>{a.l}</h3>
+<p style={{fontFamily:DS,fontSize:13,color:DK,lineHeight:1.6,margin:0}}>{a.d}</p></div>
+</div>
+<div style={{display:"grid",gridTemplateColumns:"repeat(auto-fit,minmax(220px,1fr))",gap:8}}>
+<div style={{background:"#f8fdf8",borderRadius:8,padding:12,borderLeft:"3px solid #2D7D2D"}}>
+<p style={{fontFamily:DS,fontSize:11,color:"#2D7D2D",fontWeight:700,margin:"0 0 3px"}}>Example</p>
+<p style={{fontFamily:DS,fontSize:12,color:DK,lineHeight:1.5,margin:0}}>{a.ex}</p></div>
+<div style={{background:LIGHT,borderRadius:8,padding:12}}>
+<p style={{fontFamily:DS,fontSize:11,color:NAVY,fontWeight:700,margin:"0 0 3px"}}>ATL Connection</p>
+<p style={{fontFamily:DS,fontSize:12,color:DK,lineHeight:1.5,margin:0}}>{a.atl}</p></div>
+<div style={{background:MINT,borderRadius:8,padding:12,borderLeft:"3px solid "+TEAL}}>
+<p style={{fontFamily:DS,fontSize:11,color:TEAL,fontWeight:700,margin:"0 0 3px"}}>Scaffold</p>
+<p style={{fontFamily:DS,fontSize:12,color:DK,lineHeight:1.5,margin:0}}>{a.scaffold}</p></div>
+</div>
+<div style={{background:LIGHT,borderRadius:6,padding:"8px 12px",marginTop:8}}>
+<p style={{fontFamily:DS,fontSize:12,color:NAVY,fontWeight:600,margin:0}}>Self-check: {a.q}</p></div>
+</div>)}
+</div>}
+
 {tab==="mails"&&<div>
-<p style={{fontFamily:DS,color:"#666",fontSize:15,lineHeight:1.7,marginBottom:24}}>The MAiLS helps decide if AI is helping or harming learning. Higher = greater risk to student agency.</p>
-<div style={{display:"flex",gap:4,marginBottom:24}}>
-{[{l:"Pencil",v:"Low",bg:"#E8F4E8"},{l:"Video call",v:"Low",bg:"#E8F4E8"},{l:"Video game",v:"Equal",bg:GOLD},{l:"Intelligent tutor",v:"Equal",bg:"#FFF0E0"},{l:"Chatbot",v:"High",bg:ROSE}].map((t,i)=><div key={i} style={{flex:1,background:t.bg,borderRadius:12,padding:"20px 8px",textAlign:"center"}}>
-<div style={{fontFamily:DS,fontWeight:700,fontSize:13,color:NAVY}}>{t.l}</div>
-<div style={{fontFamily:DS,fontSize:12,color:"#888",marginTop:4}}>{t.v} agency</div>
+<div style={{background:CREAM,borderRadius:12,padding:16,marginBottom:16,borderLeft:"6px solid "+AMBER}}>
+<h3 style={S.h}>MAiLS = Machine Agency in Learning Scale</h3>
+<p style={{fontFamily:DS,fontSize:13,color:DK,lineHeight:1.6,margin:0}}>IB framework (2025) for deciding if technology helps or harms learning. Both people and machines have agency, but only people can choose to give their agency to a machine. Higher on the scale = more machine decisions = greater risk.</p>
+</div>
+<div style={{display:"flex",gap:4,marginBottom:16,flexWrap:"wrap"}}>
+{[
+{l:"Pencil",v:"Low agency",bg:"#E8F4E8",d:"Every mark is your decision. Zero risk.",atl:"All ATL active"},
+{l:"Video call",v:"Low agency",bg:"#E8F4E8",d:"Connects humans. You decide what to say.",atl:"Communication active"},
+{l:"Video game",v:"Equal agency",bg:GOLD,d:"Shared decisions. System responds to you and you to it.",atl:"Thinking partially shared"},
+{l:"Intelligent tutor",v:"Equal agency",bg:"#FFF0E0",d:"Adapts to your level. Shapes what you think about.",atl:"Self-Management shared"},
+{l:"Chatbot",v:"High agency",bg:ROSE,d:"Generates ideas, writes, analyses. Highest risk.",atl:"ALL ATL at risk"}
+].map((t,i)=><div key={i} style={{flex:"1 1 150px",background:t.bg,borderRadius:10,padding:14,minWidth:140}}>
+<div style={{fontFamily:DS,fontWeight:800,fontSize:14,color:NAVY}}>{t.l}</div>
+<div style={{fontFamily:DS,fontSize:11,color:t.v.includes("High")?"#CC3333":t.v.includes("Equal")?"#B8860B":"#2D7D2D",fontWeight:700,margin:"4px 0 6px"}}>{t.v}</div>
+<p style={{fontFamily:DS,fontSize:11,color:DK,lineHeight:1.4,margin:"0 0 6px"}}>{t.d}</p>
+<div style={{fontFamily:DS,fontSize:10,color:TEAL,fontWeight:600}}>{t.atl}</div>
 </div>)}
 </div>
-<div style={{background:CREAM,border:"2px solid "+AMBER+"40",borderRadius:12,padding:20}}>
-<p style={{fontFamily:DS,color:NAVY,fontWeight:700,margin:"0 0 8px",fontSize:15}}>Teacher Decision Point</p>
-<p style={{fontFamily:DS,color:DK,margin:0,fontSize:14,lineHeight:1.6}}>High MAiLS? Redesign with AInquiry or choose a lower tool. Explain why to students—builds metacognition.</p>
-</div></div>}
-{tab==="aio"&&<div>
-<p style={{fontFamily:DS,color:"#666",fontSize:15,lineHeight:1.7,marginBottom:24}}>The AIO protocol structures AI engagement at Genesis College, mapped to LORIE:</p>
-{[{p:"AWARENESS",c:"#2D7D2D",bg:"#E8F4E8",d:"Diagnose understanding. Identify what you know and where gaps are. BEFORE AI.",lr:"L + I",r:"AI may help identify gaps after your own assessment."},
-{p:"IDEAS",c:AMBER,bg:GOLD,d:"Explore perspectives and approaches. AI can generate alternatives and challenge assumptions.",lr:"O + R",r:"AI permitted here. Student evaluates and selects."},
-{p:"OUTCOMES",c:"#8B4587",bg:"#F0E8F5",d:"Produce your own work demonstrating YOUR understanding.",lr:"E",r:"AI NOT permitted. This is the student's work."}
-].map(p=><div key={p.p} style={{background:p.bg,borderRadius:14,padding:24,marginBottom:16,border:"1px solid "+p.c+"30"}}>
-<h3 style={{fontFamily:DS,color:p.c,margin:"0 0 8px",fontSize:22,fontWeight:800}}>{p.p}</h3>
-<p style={{fontFamily:DS,color:DK,margin:"0 0 12px",fontSize:15,lineHeight:1.6}}>{p.d}</p>
-<div style={{display:"flex",gap:12,flexWrap:"wrap"}}>
-<span style={{background:"#fff",borderRadius:8,padding:"6px 12px",fontFamily:DS,fontSize:13,color:NAVY,fontWeight:600}}>LORIE: {p.lr}</span>
-<span style={{background:"#fff",borderRadius:8,padding:"6px 12px",fontFamily:DS,fontSize:13,color:p.c,fontWeight:600}}>{p.r}</span>
-</div></div>)}
-</div>}
-{tab==="offload"&&<div>
-<p style={{fontFamily:DS,color:"#666",fontSize:15,lineHeight:1.7,marginBottom:24}}>The IB distinguishes helpful offloading from harmful task replacement:</p>
-<div style={{display:"grid",gridTemplateColumns:"repeat(auto-fit,minmax(250px,1fr))",gap:14,marginBottom:24}}>
-<div style={{background:"#E8F4E8",borderRadius:14,padding:24}}>
-<h3 style={{fontFamily:DS,color:"#2D7D2D",margin:"0 0 12px",fontSize:18}}>Cognitive Offloading</h3>
-<p style={{fontFamily:DS,fontSize:14,color:DK,lineHeight:1.6}}>Tools help remember, write efficiently, extend abilities. Student does intellectual work.</p>
-<div style={{marginTop:12,fontFamily:DS,fontSize:13,color:"#555"}}>{"Calculator in physics • Speech-to-text • Grammar checker on YOUR draft • AI feedback on YOUR writing"}</div>
+<div style={S.box}>
+<h3 style={S.h}>Teacher Decision Protocol</h3>
+<div style={{display:"grid",gridTemplateColumns:"repeat(auto-fit,minmax(220px,1fr))",gap:10,marginBottom:10}}>
+<div style={{background:MINT,borderRadius:8,padding:12}}>
+<p style={{fontFamily:DS,fontWeight:700,fontSize:13,color:TEAL,margin:"0 0 4px"}}>Option 1: Redesign the task</p>
+<p style={{fontFamily:DS,fontSize:12,color:DK,lineHeight:1.5,margin:0}}>Add AInquiry structure: iteration, debunking, collaboration. The tool stays but the task protects thinking.</p></div>
+<div style={{background:LIGHT,borderRadius:8,padding:12}}>
+<p style={{fontFamily:DS,fontWeight:700,fontSize:13,color:NAVY,margin:"0 0 4px"}}>Option 2: Replace the tool</p>
+<p style={{fontFamily:DS,fontSize:12,color:DK,lineHeight:1.5,margin:0}}>Choose a tool lower on the scale. A worksheet might be more appropriate than a chatbot. Explain why to students.</p></div>
 </div>
-<div style={{background:ROSE,borderRadius:14,padding:24}}>
-<h3 style={{fontFamily:DS,color:"#CC3333",margin:"0 0 12px",fontSize:18}}>Task Replacement</h3>
-<p style={{fontFamily:DS,fontSize:14,color:DK,lineHeight:1.6}}>AI replaces a task that IS the learning. Gives information student didn't develop. Interrupts learning.</p>
-<div style={{marginTop:12,fontFamily:DS,fontSize:13,color:"#555"}}>{"AI writes the essay • AI generates RQ • AI produces analysis • AI writes reflections"}</div>
-</div></div>
-<div style={{background:CREAM,border:"2px solid "+AMBER+"40",borderRadius:12,padding:20}}>
-<p style={{fontFamily:DS,color:NAVY,fontWeight:700,margin:"0 0 8px"}}>Mechanized Convergence</p>
-<p style={{fontFamily:DS,color:DK,margin:0,fontSize:14,lineHeight:1.6}}>When 25 students use the same AI, you get 25 similar responses. Always require independent thinking BEFORE AI.</p>
-</div></div>}
+<div style={{background:CREAM,borderRadius:8,padding:12,borderLeft:"4px solid "+AMBER}}>
+<p style={{fontFamily:DS,fontSize:12,color:DK,margin:0,lineHeight:1.5}}><strong>MYP Coordinator tip:</strong> In collaborative planning, ask departments to map their AI tools on the MAiLS. Year 7 needs more scaffolding than Year 10 for high-agency tools. Build this into your ATL progression.</p></div>
+</div>
+</div>}
+
+{tab==="aio"&&<div>
+<div style={{background:CREAM,borderRadius:12,padding:16,marginBottom:16,borderLeft:"6px solid "+AMBER}}>
+<h3 style={S.h}>AIO = Awareness → Ideas → Outcomes</h3>
+<p style={{fontFamily:DS,fontSize:13,color:DK,lineHeight:1.6,margin:0}}>Genesis College protocol for when AI enters learning. Maps directly to LORIE. Critical rule: AI is permitted in Awareness and Ideas. Never in Outcomes.</p>
+</div>
+{[
+{p:"AWARENESS",sub:"What do I know? Where are my gaps?",c:"#2D7D2D",bg:"#E8F4E8",
+d:"Before AI, students diagnose their understanding independently. What do I know? What does the task need? Where are my gaps?",
+lorie:"L (Learning Goal) + I (Input)",ai:"AI may help identify gaps AFTER student's own assessment.",
+atl:"Self-Management (organisation, reflection) + Thinking (metacognition)",
+ex:"Before researching the Cuban Missile Crisis, a student writes: 'I know: 1962, US vs USSR, missiles in Cuba. I don't know: UN's role, Cuba's perspective, how close to nuclear war.'",
+scaffold:"KWL chart (Know / Want to know / Learned) completed by hand BEFORE any AI interaction."},
+{p:"IDEAS",sub:"What perspectives exist?",c:AMBER,bg:GOLD,
+d:"AI is most valuable here. Students explore perspectives, challenge assumptions, expand thinking. AI generates options—student evaluates and selects.",
+lorie:"O (Output) + R (Role)",ai:"AI permitted and encouraged. Student evaluates, selects, justifies.",
+atl:"Thinking (creative thinking, generating ideas) + Communication (developing arguments) + Research (exploring perspectives)",
+ex:"Student asks AI for three ethical frameworks for evaluating CRISPR. Gets utilitarian, deontological, virtue ethics. Chooses virtue ethics because it connects to their TOK knowledge question.",
+scaffold:"Document 2+ alternatives AI suggested that you rejected, with one-sentence justification for each rejection."},
+{p:"OUTCOMES",sub:"What is MY contribution?",c:"#8B4587",bg:"#F0E8F5",
+d:"Student produces their own work: writing, analysis, design, creation. Must demonstrate THEIR understanding. AI cannot do this step.",
+lorie:"E (Evaluate)",ai:"AI NOT permitted. This is the student's work. Full stop.",
+atl:"Communication (producing work) + Thinking (synthesis, transfer) + Self-Management (independence)",
+ex:"After exploring frameworks with AI, student writes their own 800-word CRISPR evaluation using virtue ethics, with independently researched examples, connected to their TOK question.",
+scaffold:"Ownership Test: (1) Can I explain every part without notes? (2) Can I answer follow-up questions? If either is no, AI did too much."}
+].map(p=><div key={p.p} style={{background:p.bg,borderRadius:12,padding:20,marginBottom:14,border:"1px solid "+p.c+"30"}}>
+<h3 style={{fontFamily:DS,color:p.c,margin:"0 0 2px",fontSize:20,fontWeight:800}}>{p.p}</h3>
+<p style={{fontFamily:DS,color:p.c,fontSize:12,margin:"0 0 10px",fontWeight:600}}>{p.sub}</p>
+<p style={{fontFamily:DS,fontSize:13,color:DK,lineHeight:1.6,margin:"0 0 10px"}}>{p.d}</p>
+<div style={{display:"grid",gridTemplateColumns:"repeat(auto-fit,minmax(200px,1fr))",gap:8,marginBottom:8}}>
+<div style={{background:"#fff",borderRadius:8,padding:10}}>
+<p style={{fontFamily:DS,fontSize:11,color:NAVY,fontWeight:700,margin:"0 0 3px"}}>LORIE</p>
+<p style={{fontFamily:DS,fontSize:12,color:DK,margin:0}}>{p.lorie}</p></div>
+<div style={{background:"#fff",borderRadius:8,padding:10}}>
+<p style={{fontFamily:DS,fontSize:11,color:p.c,fontWeight:700,margin:"0 0 3px"}}>AI Rule</p>
+<p style={{fontFamily:DS,fontSize:12,color:DK,margin:0}}>{p.ai}</p></div>
+<div style={{background:"#fff",borderRadius:8,padding:10}}>
+<p style={{fontFamily:DS,fontSize:11,color:TEAL,fontWeight:700,margin:"0 0 3px"}}>ATL</p>
+<p style={{fontFamily:DS,fontSize:12,color:DK,margin:0}}>{p.atl}</p></div>
+</div>
+<div style={{background:"#fff",borderRadius:8,padding:10,marginBottom:6,borderLeft:"3px solid #2D7D2D"}}>
+<p style={{fontFamily:DS,fontSize:11,color:"#2D7D2D",fontWeight:700,margin:"0 0 3px"}}>Example</p>
+<p style={{fontFamily:DS,fontSize:12,color:DK,lineHeight:1.5,margin:0}}>{p.ex}</p></div>
+<div style={{background:"#fff",borderRadius:8,padding:10,borderLeft:"3px solid "+TEAL}}>
+<p style={{fontFamily:DS,fontSize:11,color:TEAL,fontWeight:700,margin:"0 0 3px"}}>Scaffold</p>
+<p style={{fontFamily:DS,fontSize:12,color:DK,lineHeight:1.5,margin:0}}>{p.scaffold}</p></div>
+</div>)}
+</div>}
+
+{tab==="offload"&&<div>
+<div style={{background:CREAM,borderRadius:12,padding:16,marginBottom:16,borderLeft:"6px solid "+AMBER}}>
+<h3 style={S.h}>Cognitive Offloading vs Task Replacement</h3>
+<p style={{fontFamily:DS,fontSize:13,color:DK,lineHeight:1.6,margin:0}}>IB distinction (2025). Offloading = tool assists while student thinks. Replacement = tool does the thinking. Gerlich (2025) confirms AI reduces critical thinking when misused, especially in younger learners.</p>
+</div>
+<div style={{display:"grid",gridTemplateColumns:"repeat(auto-fit,minmax(280px,1fr))",gap:14,marginBottom:16}}>
+<div style={{background:"#E8F4E8",borderRadius:12,padding:16}}>
+<h3 style={{fontFamily:DS,color:"#2D7D2D",margin:"0 0 8px",fontSize:16,fontWeight:800}}>Offloading (Acceptable)</h3>
+<p style={{fontFamily:DS,fontSize:12,color:DK,lineHeight:1.5,margin:"0 0 8px"}}>Student still does the thinking. Tool helps with recording, efficiency, or access.</p>
+{["Calculator in physics—you set up the equation","Speech-to-text—your ideas, efficient recording","Grammar checker on YOUR draft—your writing, polished","AI feedback on YOUR essay—your argument, external view","Audio pace adjustment—your comprehension, accessible speed"].map((e,i)=><div key={i} style={{display:"flex",gap:6,marginBottom:4}}>
+<span style={{color:"#2D7D2D",flexShrink:0}}>✓</span>
+<span style={{fontFamily:DS,fontSize:11,color:DK}}>{e}</span></div>)}
+</div>
+<div style={{background:ROSE,borderRadius:12,padding:16}}>
+<h3 style={{fontFamily:DS,color:"#CC3333",margin:"0 0 8px",fontSize:16,fontWeight:800}}>Replacement (Not Acceptable)</h3>
+<p style={{fontFamily:DS,fontSize:12,color:DK,lineHeight:1.5,margin:"0 0 8px"}}>AI does the intellectual work the student should do. Learning is interrupted.</p>
+{["AI writes the essay—writing IS the thinking","AI generates your RQ—the question IS your inquiry","AI produces analysis—analysis IS the assessed skill","AI writes reflections—reflection requires YOUR experience","AI creates argument structure—structuring IS higher-order thinking"].map((e,i)=><div key={i} style={{display:"flex",gap:6,marginBottom:4}}>
+<span style={{color:"#CC3333",flexShrink:0}}>✗</span>
+<span style={{fontFamily:DS,fontSize:11,color:DK}}>{e}</span></div>)}
+</div>
+</div>
+<div style={S.box}>
+<h3 style={{fontFamily:DS,fontWeight:700,fontSize:14,color:"#CC6633",margin:"0 0 8px"}}>Mechanized Convergence</h3>
+<p style={{fontFamily:DS,fontSize:13,color:DK,lineHeight:1.6,margin:"0 0 8px"}}>When 25 students use the same AI for the same task, they get similar ideas. The diversity of thought—where the richest learning happens—collapses (Lee et al., 2025; Sarkar, 2023).</p>
+<div style={{background:MINT,borderRadius:8,padding:12,borderLeft:"4px solid "+TEAL}}>
+<p style={{fontFamily:DS,fontSize:12,color:TEAL,fontWeight:700,margin:"0 0 4px"}}>Prevention (ATL: Social + Thinking)</p>
+<p style={{fontFamily:DS,fontSize:12,color:DK,margin:0}}>Require independent thinking BEFORE AI. Each student brings own ideas first. Make prompts visible. Run the Convergence Test activity.</p></div>
+</div>
+</div>}
+
+{tab==="atlmap"&&<div>
+<div style={{background:CREAM,borderRadius:12,padding:16,marginBottom:16,borderLeft:"6px solid "+AMBER}}>
+<h3 style={S.h}>ATL Skills + AI: Complete Map</h3>
+<p style={{fontFamily:DS,fontSize:13,color:DK,lineHeight:1.6,margin:0}}>Every AI interaction develops or undermines ATL skills. Use this during collaborative planning to make AI integration intentional.</p>
+</div>
+{[
+{name:"Thinking Skills",icon:"\u{1F9E0}",color:NAVY,risk:"HIGH",skills:"Critical thinking, Creative thinking, Transfer, Metacognition",
+opp:"AI presents claims to evaluate. Generates approaches to compare. Presents unfamiliar contexts for transfer.",
+danger:"If AI does analysis, analytical skills don't develop. If AI generates all ideas, creative thinking atrophies.",
+safe:"Never accept AI analysis as final. Require annotating, critiquing, reconstructing. Use Debunk systematically.",
+myp:"Year 7–8: structured templates requiring thinking at each step. Year 10: self-regulated AI use."},
+{name:"Communication",icon:"\u{1F4AC}",color:"#2E75B6",risk:"MEDIUM",skills:"Exchanging ideas, Literacy, Presenting, Using language",
+opp:"Chatbots for low-stakes practice. Formulating ideas before presenting to humans. Draft feedback.",
+danger:"Students stop developing their own voice. AI-polished writing hides genuine ability.",
+safe:"AI for practice and feedback, not final products. Include in-class oral assessments.",
+myp:"Language Acquisition: chatbots complement, never replace human interaction. Write first drafts by hand."},
+{name:"Social Skills",icon:"\u{1F91D}",color:TEAL,risk:"LOW",skills:"Collaboration, Group decision-making, Conflict resolution",
+opp:"AI is one source among many. Groups use AI ideas as discussion starting points.",
+danger:"Students work individually with AI instead of collaborating with each other.",
+safe:"Every AI task needs genuine human collaboration—face-to-face, about IDEAS not logistics.",
+myp:"Service as Action: AI helps research/plan, but human relationships ARE the learning."},
+{name:"Self-Management",icon:"\u{1F4CB}",color:AMBER,risk:"MEDIUM",skills:"Organisation, Time management, Reflection, Resilience",
+opp:"AI helps organise, set goals, plan. Thinking Log builds reflection. LORIE develops goal-setting.",
+danger:"Over-reliance reduces independence. Quick AI answers prevent developing perseverance.",
+safe:"Thinking Log consistently. AI-free tasks requiring perseverance. LORIE's Input forces self-assessment.",
+myp:"Year 7–8: AI Decision Checklist before every interaction. Year 10: internalised. The progression IS the learning."},
+{name:"Research Skills",icon:"\u{1F50D}",color:"#8B4587",risk:"HIGH",skills:"Formulating questions, Collecting data, Evaluating information",
+opp:"Powerful for exploration, brainstorming, identifying gaps. Suggests search terms and approaches.",
+danger:"AI fabricates sources. Students skip finding, reading, evaluating primary sources—which IS research.",
+safe:"ALL AI sources verified independently. Non-negotiable. Students must read actual sources.",
+myp:"Criterion B (Investigating): if students use AI, they must demonstrate independent source evaluation."}
+].map(a=><div key={a.name} style={{...S.box,borderLeft:"6px solid "+a.color}}>
+<div style={{display:"flex",justifyContent:"space-between",flexWrap:"wrap",gap:6,marginBottom:8}}>
+<div><h3 style={{fontFamily:DS,color:a.color,margin:0,fontSize:17,fontWeight:800}}>{a.icon} {a.name}</h3>
+<p style={{fontFamily:DS,fontSize:11,color:"#888",margin:"2px 0 0"}}>{a.skills}</p></div>
+<span style={{background:a.risk==="HIGH"?ROSE:a.risk==="LOW"?"#E8F4E8":GOLD,color:a.risk==="HIGH"?"#CC3333":a.risk==="LOW"?"#2D7D2D":"#B8860B",borderRadius:6,padding:"3px 10px",fontFamily:DS,fontSize:11,fontWeight:800}}>Risk: {a.risk}</span>
+</div>
+<div style={{display:"grid",gridTemplateColumns:"repeat(auto-fit,minmax(200px,1fr))",gap:8}}>
+<div style={{background:"#f8fdf8",borderRadius:8,padding:10}}>
+<p style={{fontFamily:DS,fontSize:11,color:"#2D7D2D",fontWeight:700,margin:"0 0 3px"}}>Opportunity</p>
+<p style={{fontFamily:DS,fontSize:11,color:DK,lineHeight:1.4,margin:0}}>{a.opp}</p></div>
+<div style={{background:ROSE,borderRadius:8,padding:10}}>
+<p style={{fontFamily:DS,fontSize:11,color:"#CC3333",fontWeight:700,margin:"0 0 3px"}}>Danger</p>
+<p style={{fontFamily:DS,fontSize:11,color:DK,lineHeight:1.4,margin:0}}>{a.danger}</p></div>
+<div style={{background:LIGHT,borderRadius:8,padding:10}}>
+<p style={{fontFamily:DS,fontSize:11,color:NAVY,fontWeight:700,margin:"0 0 3px"}}>Safeguard</p>
+<p style={{fontFamily:DS,fontSize:11,color:DK,lineHeight:1.4,margin:0}}>{a.safe}</p></div>
+</div>
+<div style={{background:MINT,borderRadius:8,padding:10,marginTop:6,borderLeft:"3px solid "+TEAL}}>
+<p style={{fontFamily:DS,fontSize:11,color:TEAL,fontWeight:700,margin:"0 0 3px"}}>MYP Coordinator Tip</p>
+<p style={{fontFamily:DS,fontSize:11,color:DK,lineHeight:1.4,margin:0}}>{a.myp}</p></div>
+</div>)}
+</div>}
 </div>
 }
 
