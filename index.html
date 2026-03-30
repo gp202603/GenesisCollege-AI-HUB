@@ -146,13 +146,17 @@ return <nav style={{background:NAVY,position:"sticky",top:0,zIndex:100,borderBot
 
 function Home({go}){
 const cards=[
-{id:"lorie",icon:"\u{1F6E0}",t:"LORIE Prompt Builder",d:"Build structured prompts step by step with real-time assembly.",c:NAVY},
-{id:"examples",icon:"\u{1F4D6}",t:"Examples Library",d:"26 worked examples across DP and MYP with subject filtering.",c:"#2E75B6"},
-{id:"frameworks",icon:"\u{1F9ED}",t:"Frameworks",d:"AInquiry, MAiLS, AIO Protocol, Cognitive Offloading.",c:TEAL},
-{id:"subjects",icon:"\u{1F4DA}",t:"Subject Guide",d:"15 subjects with 15 guidance points each.",c:"#8B4587"},
-{id:"activities",icon:"\u{1F3AF}",t:"Activities",d:"16 classroom-ready activities with extensions.",c:AMBER},
-{id:"integrity",icon:"\u2696",t:"Integrity",d:"Green/amber/red framework for AI use.",c:"#CC3333"},
-{id:"charter",icon:"\u{1F4DC}",t:"Student Charter",d:"16 principles for responsible AI use.",c:"#2D7D2D"}
+{id:"lorie",icon:"\u{1F6E0}",t:"LORIE Builder",d:"Build prompts step by step.",c:NAVY},
+{id:"examples",icon:"\u{1F4D6}",t:"Examples Library",d:"26+ worked examples across DP & MYP.",c:"#2E75B6"},
+{id:"frameworks",icon:"\u{1F9ED}",t:"Frameworks",d:"AInquiry, MAiLS, AIO Protocol.",c:TEAL},
+{id:"atl",icon:"\u{1F4A1}",t:"ATL & AI",d:"How AI connects to each ATL skill.",c:"#8B4587"},
+{id:"subjects",icon:"\u{1F4DA}",t:"Subject Guide",d:"15 subjects, 15 points each.",c:AMBER},
+{id:"activities",icon:"\u{1F3AF}",t:"Activities",d:"16 classroom activities.",c:"#CC6633"},
+{id:"journal",icon:"\u{1F4D3}",t:"Reflection Journal",d:"Log your AI interactions.",c:TEAL},
+{id:"evaluator",icon:"\u2705",t:"Task Evaluator",d:"Teachers: check task readiness.",c:"#2D7D2D"},
+{id:"integrity",icon:"\u2696",t:"Integrity Matrix",d:"Green/amber/red framework.",c:"#CC3333"},
+{id:"charter",icon:"\u{1F4DC}",t:"Student Charter",d:"16 principles for AI use.",c:NAVY},
+{id:"faq",icon:"\u2753",t:"FAQ",d:"Students, teachers & parents.",c:AMBER}
 ];
 return <div>
 <div style={{background:"linear-gradient(135deg,"+NAVY+",#2a2080,"+NAVY+")",padding:"80px 20px",textAlign:"center"}}>
@@ -395,6 +399,115 @@ return <div style={{maxWidth:1000,margin:"0 auto",padding:"40px 20px"}}>
 </div></div>
 }
 
+
+function ATLExplorer(){
+const[sel,setSel]=useState(0);const a=atlData[sel];
+return <div style={{maxWidth:900,margin:"0 auto",padding:"32px 20px"}}>
+<h1 style={{fontFamily:PF,color:NAVY,fontSize:32,marginBottom:20}}>ATL Skills & AI</h1>
+<div style={{display:"flex",gap:8,flexWrap:"wrap",marginBottom:20}}>
+{atlData.map((s,i)=><div key={i} onClick={()=>setSel(i)} style={{background:sel===i?s.color:"#fff",color:sel===i?"#fff":s.color,border:"2px solid "+s.color,borderRadius:10,padding:"8px 14px",cursor:"pointer",fontFamily:DS,fontSize:13,fontWeight:600}}>{s.icon} {s.name}</div>)}
+</div>
+<div style={{background:"#fff",borderRadius:14,border:"2px solid "+a.color+"30",overflow:"hidden"}}>
+<div style={{background:a.color,padding:"20px 24px",display:"flex",justifyContent:"space-between",alignItems:"center"}}>
+<h2 style={{fontFamily:DS,color:"#fff",margin:0,fontSize:22}}>{a.icon} {a.name}</h2>
+<span style={{background:"#ffffff30",padding:"4px 12px",borderRadius:20,fontFamily:DS,fontSize:13,fontWeight:700,color:"#fff"}}>Risk: {a.risk}</span>
+</div>
+<div style={{padding:24,display:"grid",gap:16}}>
+<div style={{background:"#E8F4E8",borderRadius:10,padding:16}}><h4 style={{fontFamily:DS,color:"#2D7D2D",margin:"0 0 6px",fontSize:14}}>Opportunity</h4><p style={{fontFamily:DS,color:DK,margin:0,fontSize:14,lineHeight:1.6}}>{a.opp}</p></div>
+<div style={{background:ROSE,borderRadius:10,padding:16}}><h4 style={{fontFamily:DS,color:"#CC3333",margin:"0 0 6px",fontSize:14}}>Danger</h4><p style={{fontFamily:DS,color:DK,margin:0,fontSize:14,lineHeight:1.6}}>{a.danger}</p></div>
+<div style={{background:LIGHT,borderRadius:10,padding:16}}><h4 style={{fontFamily:DS,color:NAVY,margin:"0 0 6px",fontSize:14}}>Mitigation</h4><p style={{fontFamily:DS,color:DK,margin:0,fontSize:14,lineHeight:1.6}}>{a.action}</p></div>
+</div></div></div>
+}
+
+function Journal(){
+const[entries,setEntries]=useState([]);
+const[form,setForm]=useState({task:"",question:"",knew:"",learned:"",changed:""});
+const add=()=>{if(form.task.trim()&&form.question.trim()){setEntries([{...form,date:new Date().toLocaleDateString(),id:Date.now()},...entries]);setForm({task:"",question:"",knew:"",learned:"",changed:""})}};
+return <div style={{maxWidth:900,margin:"0 auto",padding:"32px 20px"}}>
+<h1 style={{fontFamily:PF,color:NAVY,fontSize:32,marginBottom:8}}>AI Reflection Journal</h1>
+<p style={{fontFamily:DS,color:"#666",fontSize:14,marginBottom:24}}>Log every AI interaction. Builds metacognitive habits and evidence of engagement.</p>
+<div style={{background:"#fff",borderRadius:14,border:"2px solid "+TEAL+"40",padding:24,marginBottom:24}}>
+{[{k:"task",l:"What task?",p:"e.g., Biology IA draft"},{k:"question",l:"What did you ask AI?",p:"Your prompt"},{k:"knew",l:"What did you already know?",p:"Existing knowledge"},{k:"learned",l:"What did you learn?",p:"New insights"},{k:"changed",l:"What did you change and why?",p:"Corrections, adaptations"}].map(f=><div key={f.k} style={{marginBottom:12}}>
+<label style={{fontFamily:DS,fontWeight:700,color:NAVY,fontSize:13,display:"block",marginBottom:3}}>{f.l}</label>
+<textarea value={form[f.k]} onChange={e=>setForm({...form,[f.k]:e.target.value})} placeholder={f.p} rows={2} style={{width:"100%",border:"1px solid #ddd",borderRadius:8,padding:10,fontFamily:DS,fontSize:13,resize:"vertical",boxSizing:"border-box"}}/>
+</div>)}
+<div onClick={add} style={{background:TEAL,color:"#fff",padding:"10px 24px",borderRadius:8,fontFamily:DS,fontWeight:700,fontSize:14,cursor:"pointer",display:"inline-block"}}>Save Entry</div>
+</div>
+{entries.length>0&&<h3 style={{fontFamily:DS,color:NAVY,marginBottom:12}}>Your Entries ({entries.length})</h3>}
+{entries.map(e=><div key={e.id} style={{background:"#fff",borderRadius:10,border:"1px solid #e0e0e0",padding:16,marginBottom:10}}>
+<div style={{fontFamily:DS,fontSize:11,color:"#999",marginBottom:8}}>{e.date} \u2014 {e.task}</div>
+<div style={{fontFamily:DS,fontSize:13,color:DK,lineHeight:1.5}}><strong>Asked:</strong> {e.question}<br/><strong>Knew:</strong> {e.knew}<br/><strong>Learned:</strong> {e.learned}<br/><strong>Changed:</strong> {e.changed}</div>
+</div>)}
+</div>
+}
+
+function TaskEvaluator(){
+const checks=[
+{q:"Task requires independent thinking BEFORE AI?",cat:"AInquiry"},
+{q:"Can be completed with a single prompt?",cat:"AInquiry",warn:true},
+{q:"Requires iteration (multiple prompts)?",cat:"AInquiry"},
+{q:"Requires debunking (verifying outputs)?",cat:"AInquiry"},
+{q:"Requires human collaboration?",cat:"AInquiry"},
+{q:"MAiLS risk level acceptable?",cat:"MAiLS"},
+{q:"AI in IDEAS phase (not OUTCOMES)?",cat:"AIO"},
+{q:"Process evidence required?",cat:"Process"},
+{q:"Risk of mechanized convergence?",cat:"Risk",warn:true},
+{q:"Develops ATL skills?",cat:"ATL"},
+{q:"Has AI-free component?",cat:"Design"},
+{q:"Subject-specific IB guidance checked?",cat:"IB"},
+{q:"AI expectations discussed with students?",cat:"Transparency"},
+{q:"Student can explain work without AI?",cat:"Ownership"},
+{q:"Aligns with Learner Profile?",cat:"IB"}
+];
+const[checked,setChecked]=useState(new Set());
+const toggle=(i)=>{const n=new Set(checked);n.has(i)?n.delete(i):n.add(i);setChecked(n)};
+const score=checks.filter((_,i)=>!checks[i].warn?checked.has(i):!checked.has(i)).length;
+const pct=Math.round(score/checks.length*100);
+return <div style={{maxWidth:900,margin:"0 auto",padding:"32px 20px"}}>
+<h1 style={{fontFamily:PF,color:NAVY,fontSize:32,marginBottom:8}}>Task Evaluator</h1>
+<p style={{fontFamily:DS,color:"#666",fontSize:14,marginBottom:24}}>Check each item before assigning an AI task. Yellow = warnings (want UNCHECKED).</p>
+<div style={{background:"#fff",borderRadius:14,border:"1px solid #e0e0e0",padding:24}}>
+<div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:16}}>
+<h3 style={{fontFamily:DS,color:NAVY,margin:0}}>Readiness</h3>
+<div style={{fontFamily:DS,fontWeight:800,fontSize:28,color:pct>=80?"#2D7D2D":pct>=50?AMBER:"#CC3333"}}>{pct}%</div>
+</div>
+<div style={{background:LIGHT,borderRadius:8,height:10,marginBottom:20}}>
+<div style={{background:pct>=80?"#2D7D2D":pct>=50?AMBER:"#CC3333",borderRadius:8,height:10,width:pct+"%",transition:"width 0.3s"}}/>
+</div>
+{checks.map((c,i)=><div key={i} onClick={()=>toggle(i)} style={{display:"flex",gap:10,padding:"8px 0",borderBottom:"1px solid #f5f5f5",cursor:"pointer"}}>
+<div style={{width:20,height:20,borderRadius:4,border:"2px solid "+(c.warn?AMBER:NAVY),background:checked.has(i)?(c.warn?AMBER:NAVY):"transparent",display:"flex",alignItems:"center",justifyContent:"center",flexShrink:0}}>
+{checked.has(i)&&<span style={{color:"#fff",fontSize:12}}>\u2713</span>}
+</div>
+<span style={{fontFamily:DS,fontSize:13,color:DK}}>{c.q} <span style={{fontSize:11,color:c.warn?"#B8860B":TEAL,fontWeight:600}}>{c.cat}</span></span>
+</div>)}
+</div>
+<div style={{marginTop:16,background:pct>=80?"#E8F4E8":pct>=50?GOLD:ROSE,borderRadius:10,padding:16}}>
+<p style={{fontFamily:DS,color:DK,margin:0,fontSize:13}}>{pct>=80?"Well-designed. Proceed with confidence.":pct>=50?"Needs adjustments. Review unchecked items.":"Significant risks. Redesign with AInquiry."}</p>
+</div>
+</div>
+}
+
+function FAQ(){
+const[cat,setCat]=useState("Students");const[open,setOpen]=useState(null);
+const items=faqData.find(f=>f.cat===cat)?.items||[];
+return <div style={{maxWidth:900,margin:"0 auto",padding:"32px 20px"}}>
+<h1 style={{fontFamily:PF,color:NAVY,fontSize:32,marginBottom:20}}>FAQ</h1>
+<div style={{display:"flex",gap:8,marginBottom:24}}>
+{faqData.map(f=><div key={f.cat} onClick={()=>{setCat(f.cat);setOpen(null)}} style={{background:cat===f.cat?NAVY:"#fff",color:cat===f.cat?"#fff":NAVY,border:"2px solid "+NAVY,borderRadius:10,padding:"8px 20px",cursor:"pointer",fontFamily:DS,fontSize:14,fontWeight:600}}>{f.cat}</div>)}
+</div>
+{items.map((item,i)=><div key={i} style={{background:"#fff",borderRadius:12,border:open===i?"2px solid "+NAVY:"1px solid #e0e0e0",marginBottom:10}}>
+<div onClick={()=>setOpen(open===i?null:i)} style={{padding:"14px 20px",cursor:"pointer",display:"flex",justifyContent:"space-between",alignItems:"center",userSelect:"none"}}>
+<span style={{fontFamily:DS,fontWeight:700,color:NAVY,fontSize:14}}>{item.q}</span>
+<span style={{fontSize:14,color:"#999",transform:open===i?"rotate(180deg)":"none",transition:"transform 0.2s"}}>\u25BC</span>
+</div>
+{open===i&&<div style={{padding:"0 20px 16px",borderTop:"1px solid #eee"}}>
+<p style={{fontFamily:DS,color:DK,fontSize:13,lineHeight:1.6,marginTop:10}}>{item.a}</p>
+</div>}
+</div>)}
+</div>
+}
+
+
 function App(){
 const[active,setActive]=useState("home");
 return <div style={{background:LIGHT,minHeight:"100vh"}}>
@@ -403,10 +516,14 @@ return <div style={{background:LIGHT,minHeight:"100vh"}}>
 {active==="lorie"&&<LorieBuilder/>}
 {active==="examples"&&<Examples/>}
 {active==="frameworks"&&<Frameworks/>}
+{active==="atl"&&<ATLExplorer/>}
 {active==="subjects"&&<Subjects/>}
 {active==="activities"&&<Activities/>}
+{active==="journal"&&<Journal/>}
+{active==="evaluator"&&<TaskEvaluator/>}
 {active==="integrity"&&<Integrity/>}
 {active==="charter"&&<Charter/>}
+{active==="faq"&&<FAQ/>}
 </div>
 }
 
