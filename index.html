@@ -443,6 +443,601 @@ return <div style={{maxWidth:900,margin:"0 auto",padding:"32px 20px"}}>
 }
 
 function TaskEvaluator(){
+const categories=[
+{name:"Task Design",color:NAVY,icon:"\u{1F4DD}",checks:[
+{q:"The task requires students to think independently for at least 10 minutes BEFORE using AI",tip:"Without this, students skip straight to AI and never develop their own ideas. This is the single most important safeguard against mechanized convergence.",pos:"Students develop original thinking that AI then builds on\u2014not replaces.",neg:"Students outsource all thinking to AI. You'll get 25 identical responses."},
+{q:"The task cannot be completed with a single AI prompt",tip:"If a student can type one prompt and submit the result, the task is testing AI skills, not learning. Multi-step tasks protect genuine engagement.",pos:"The task requires sustained intellectual effort across multiple steps.",neg:"A single prompt produces a submission-ready response. Redesign urgently."},
+{q:"The task has at least one component that must be done without AI",tip:"AI-free components (handwritten reflection, in-class discussion, live presentation) ensure students can demonstrate understanding independently.",pos:"Independent capability is protected. Students can't hide behind AI.",neg:"Every component could be AI-generated. Add an AI-free element."},
+{q:"The task produces diverse outputs when different students complete it",tip:"If all outputs look similar, the task likely invites mechanized convergence. Good tasks draw on personal experience, local context, or unique analytical angles.",pos:"Student individuality and original thinking are visible in the outputs.",neg:"Risk of mechanized convergence. Personalise the task with unique contexts."}
+]},
+{name:"AInquiry Alignment",color:TEAL,icon:"\u{1F9ED}",checks:[
+{q:"Students must ITERATE: refine prompts and challenge AI outputs multiple times",tip:"Single prompt-response is not inquiry. Require evidence of at least 2-3 iterations where students push back on or refine AI responses.",pos:"Iterative dialogue develops critical evaluation and deeper understanding.",neg:"Students accept first response uncritically. Require documented iterations."},
+{q:"Students must QUESTION: create questions of increasing complexity",tip:"Students should move from basic to complex questions. Their prompt sequence should show intellectual progression, not just repetition.",pos:"Question quality improves through the task, showing intellectual growth.",neg:"Students ask surface-level questions. Model question escalation."},
+{q:"Students must DEBUNK: verify AI outputs against credible sources",tip:"Every factual claim from AI must be checked. Students should document what they verified, how, and what they found to be inaccurate.",pos:"Critical evaluation is embedded. Students learn AI is fallible.",neg:"AI output is trusted uncritically. Build in mandatory verification steps."},
+{q:"Students must COLLABORATE: discuss AI-generated ideas with peers or teacher",tip:"Human collaboration catches errors and expands perspectives that neither the student nor AI considered. This is where the richest learning happens.",pos:"Multiple human perspectives enrich the final output beyond what AI alone provides.",neg:"Students work in isolation with AI. Add peer review or discussion components."}
+]},
+{name:"Assessment Integrity",color:"#CC3333",icon:"\u2696",checks:[
+{q:"AI is used in the IDEAS phase only (not producing the final OUTCOMES)",tip:"The AIO protocol: AI can help explore ideas and perspectives, but the final product\u2014the essay, analysis, reflection, design\u2014must be the student's own work.",pos:"Student ownership of the final product is clear and defensible.",neg:"AI is producing the assessed output. This is an academic integrity violation."},
+{q:"You have checked the subject-specific IB guidance for this assessment type",tip:"Each IB subject has specific rules about AI use in assessments. General school policy is not enough\u2014you must check the subject guide.",pos:"The task complies with IB requirements for this specific assessment type.",neg:"You may be violating IB assessment regulations. Check the subject guide immediately."},
+{q:"Students must document all AI interactions (prompts, responses, changes made)",tip:"Transparency is non-negotiable. Students should submit their Thinking Log alongside their work, showing prompts used, responses received, and how they modified outputs.",pos:"Full transparency. Teachers can verify genuine engagement with AI.",neg:"AI use is invisible. You cannot distinguish genuine learning from copy-paste."},
+{q:"A student could explain and defend every part of their submission in a conversation",tip:"This is the Ownership Test. If a student cannot talk through their reasoning, justify their choices, and answer follow-up questions, AI has done too much.",pos:"The work genuinely reflects student understanding and thinking.",neg:"Students cannot defend their own work. The assessment has no validity."}
+]},
+{name:"Learning Design",color:"#8B4587",icon:"\u{1F4A1}",checks:[
+{q:"The task develops specific ATL skills (not just produces an output)",tip:"Good tasks build thinking, communication, research, social, or self-management skills. If the task only produces a document, it may not be developing skills.",pos:"Students are developing transferable skills through the AI interaction.",neg:"The task produces an output but doesn't develop skills. Redesign around ATL."},
+{q:"The task connects to the IB Learner Profile attributes",tip:"Consider which attributes the task develops: inquirer, thinker, communicator, principled, reflective? AI tasks should strengthen these, not bypass them.",pos:"The task strengthens learner profile attributes through structured AI use.",neg:"AI use may be undermining key attributes, especially 'thinker' and 'principled.'"},
+{q:"You will discuss AI expectations with students BEFORE they begin",tip:"Students need to know what's expected, what's allowed, and what's not before they start. Retroactive rules create confusion and resentment.",pos:"Clear expectations set. Students understand the purpose of AI in this task.",neg:"Students may misuse AI without realising. Set expectations explicitly."},
+{q:"The task includes a reflective component where students evaluate their AI use",tip:"Metacognition is essential. Students should reflect on how AI helped, what it got wrong, what they would do differently, and what they learned from the process.",pos:"Students develop metacognitive awareness about their relationship with AI.",neg:"No reflection means no metacognitive development. Add a brief reflection prompt."}
+]},
+];
+const[taskDesc,setTaskDesc]=useState("");
+const[subject,setSubject]=useState("");
+const[checked,setChecked]=useState(new Set());
+const[showResults,setShowResults]=useState(false);
+const allChecks=categories.flatMap((cat,ci)=>cat.checks.map((ch,chi)=>({...ch,catName:cat.name,catColor:cat.color,id:ci+"_"+chi})));
+const toggle=(id)=>{const n=new Set(checked);n.has(id)?n.delete(id):n.add(id);setChecked(n);setShowResults(false)};
+const total=allChecks.length;
+const score=allChecks.filter(c=>checked.has(c.id)).length;
+const pct=Math.round(score/total*100);
+const band=pct>=88?"Excellent":pct>=69?"Good":pct>=50?"Needs Work":"Redesign Required";
+const bandColor=pct>=88?"#2D7D2D":pct>=69?TEAL:pct>=50?AMBER:"#CC3333";
+const bandBg=pct>=88?"#E8F4E8":pct>=69?MINT:pct>=50?GOLD:ROSE;
+const unchecked=allChecks.filter(c=>!checked.has(c.id));
+const checkedItems=allChecks.filter(c=>checked.has(c.id));
+
+return <div style={{maxWidth:950,margin:"0 auto",padding:"32px 20px"}}>
+<h1 style={{fontFamily:PF,color:NAVY,fontSize:32,marginBottom:8}}>AI Task Evaluator for Teachers</h1>
+<div style={{background:CREAM,border:"2px solid "+AMBER+"40",borderRadius:12,padding:20,marginBottom:24}}>
+<h3 style={{fontFamily:DS,color:NAVY,fontSize:15,margin:"0 0 8px"}}>How to use this tool</h3>
+<p style={{fontFamily:DS,color:DK,fontSize:13,lineHeight:1.7,margin:"0 0 8px"}}>Before assigning any task where students may use AI, work through this checklist. It evaluates your task across four dimensions: Task Design, AInquiry Alignment, Assessment Integrity, and Learning Design. Each item has a detailed explanation of why it matters.</p>
+<p style={{fontFamily:DS,color:DK,fontSize:13,lineHeight:1.7,margin:"0 0 8px"}}><strong>Green checks</strong> = your task meets this criterion. <strong>Unchecked items</strong> = areas to address. After completing the checklist, click <strong>"Generate Report"</strong> for a detailed analysis with specific recommendations.</p>
+<p style={{fontFamily:DS,color:"#888",fontSize:12,margin:0}}>Tip: describe your task below so the report is contextualised to your specific activity.</p>
+</div>
+
+<div style={{background:"#fff",borderRadius:14,border:"1px solid #e0e0e0",padding:24,marginBottom:20}}>
+<label style={{fontFamily:DS,fontWeight:700,color:NAVY,fontSize:14,display:"block",marginBottom:6}}>Describe your task (optional but recommended)</label>
+<textarea value={taskDesc} onChange={e=>setTaskDesc(e.target.value)} placeholder="e.g., Year 12 Biology HL students will use AI to help them evaluate the limitations of their IA experimental design..." rows={3} style={{width:"100%",border:"1px solid #ddd",borderRadius:8,padding:12,fontFamily:DS,fontSize:14,resize:"vertical",boxSizing:"border-box",marginBottom:14}}/>
+<label style={{fontFamily:DS,fontWeight:700,color:NAVY,fontSize:14,display:"block",marginBottom:6}}>Subject / Year group</label>
+<input value={subject} onChange={e=>setSubject(e.target.value)} placeholder="e.g., Biology HL, Year 12" style={{width:"100%",border:"1px solid #ddd",borderRadius:8,padding:10,fontFamily:DS,fontSize:14,boxSizing:"border-box"}}/>
+</div>
+
+{categories.map((cat,ci)=><div key={ci} style={{background:"#fff",borderRadius:14,border:"1px solid #e0e0e0",marginBottom:16,overflow:"hidden"}}>
+<div style={{background:cat.color,padding:"14px 20px",display:"flex",alignItems:"center",gap:10}}>
+<span style={{fontSize:20}}>{cat.icon}</span>
+<h3 style={{fontFamily:DS,color:"#fff",margin:0,fontSize:16}}>{cat.name}</h3>
+<span style={{marginLeft:"auto",fontFamily:DS,fontSize:12,color:"#ffffffaa"}}>{cat.checks.filter((_,chi)=>checked.has(ci+"_"+chi)).length}/{cat.checks.length}</span>
+</div>
+<div style={{padding:"12px 20px"}}>
+{cat.checks.map((c,chi)=>{const id=ci+"_"+chi;return <div key={id} style={{padding:"12px 0",borderBottom:chi<cat.checks.length-1?"1px solid #f0f0f0":"none"}}>
+<div onClick={()=>toggle(id)} style={{display:"flex",gap:12,cursor:"pointer",alignItems:"flex-start"}}>
+<div style={{width:22,height:22,borderRadius:4,border:"2px solid "+cat.color,background:checked.has(id)?cat.color:"transparent",display:"flex",alignItems:"center",justifyContent:"center",flexShrink:0,marginTop:1}}>
+{checked.has(id)&&<span style={{color:"#fff",fontSize:13,fontWeight:700}}>{"\u2713"}</span>}
+</div>
+<div style={{flex:1}}>
+<div style={{fontFamily:DS,fontSize:14,color:DK,fontWeight:600,marginBottom:4}}>{c.q}</div>
+<div style={{fontFamily:DS,fontSize:12,color:"#888",lineHeight:1.5}}>{c.tip}</div>
+</div>
+</div>
+</div>})}
+</div>
+</div>)}
+
+<div style={{display:"flex",gap:12,alignItems:"center",marginBottom:20}}>
+<div style={{flex:1,background:LIGHT,borderRadius:8,height:14}}>
+<div style={{background:bandColor,borderRadius:8,height:14,width:pct+"%",transition:"width 0.4s"}}/>
+</div>
+<div style={{fontFamily:DS,fontWeight:800,fontSize:24,color:bandColor}}>{pct}%</div>
+</div>
+
+<div onClick={()=>setShowResults(true)} style={{background:NAVY,color:"#fff",padding:"14px 32px",borderRadius:10,fontFamily:DS,fontWeight:700,fontSize:15,cursor:"pointer",textAlign:"center",marginBottom:24}}>Generate Report</div>
+
+{showResults&&<div style={{background:"#fff",borderRadius:16,border:"2px solid "+bandColor,overflow:"hidden",marginBottom:24}}>
+<div style={{background:bandBg,padding:"24px 28px",borderBottom:"2px solid "+bandColor}}>
+<div style={{display:"flex",justifyContent:"space-between",alignItems:"center"}}>
+<div>
+<h2 style={{fontFamily:PF,color:bandColor,margin:"0 0 4px",fontSize:26}}>{band}</h2>
+<p style={{fontFamily:DS,color:DK,margin:0,fontSize:14}}>{subject&&<span><strong>{subject}</strong> \u2014 </span>}{score} of {total} criteria met ({pct}%)</p>
+</div>
+<div style={{width:70,height:70,borderRadius:"50%",background:bandColor,color:"#fff",display:"flex",alignItems:"center",justifyContent:"center",fontFamily:DS,fontWeight:800,fontSize:24}}>{pct}%</div>
+</div>
+</div>
+
+<div style={{padding:28}}>
+{taskDesc&&<div style={{background:LIGHT,borderRadius:10,padding:16,marginBottom:20}}>
+<h4 style={{fontFamily:DS,color:NAVY,margin:"0 0 6px",fontSize:13}}>Your Task</h4>
+<p style={{fontFamily:DS,color:DK,margin:0,fontSize:14,lineHeight:1.6}}>{taskDesc}</p>
+</div>}
+
+<h3 style={{fontFamily:DS,color:NAVY,fontSize:16,margin:"0 0 12px"}}>Overall Assessment</h3>
+<p style={{fontFamily:DS,color:DK,fontSize:14,lineHeight:1.7,margin:"0 0 20px"}}>
+{pct>=88?"This task is well-designed for responsible AI integration. It protects student thinking, embeds inquiry processes, maintains assessment integrity, and develops genuine learning. You can proceed with confidence. Consider sharing this task design with colleagues as a model.":
+pct>=69?"This task has a solid foundation but has gaps that should be addressed before assigning it. Review the areas for improvement below. Most issues can be resolved with minor adjustments to the task instructions or adding a reflective component.":
+pct>=50?"This task needs significant revision before it is ready for AI integration. Several critical safeguards are missing, which could lead to students bypassing genuine learning or violating academic integrity. Focus on the priority areas below.":
+"This task is not currently suitable for AI integration. The design has fundamental issues that would likely result in students outsourcing their thinking to AI rather than developing it. Consider redesigning from scratch using the AInquiry framework, or making this an AI-free task."}
+</p>
+
+{unchecked.length>0&&<div style={{marginBottom:20}}>
+<h3 style={{fontFamily:DS,color:"#CC3333",fontSize:16,margin:"0 0 12px"}}>{"\u26A0"} Areas for Improvement ({unchecked.length})</h3>
+{unchecked.map((c,i)=><div key={i} style={{background:ROSE,borderRadius:10,padding:16,marginBottom:10,borderLeft:"4px solid #CC3333"}}>
+<div style={{fontFamily:DS,fontSize:14,fontWeight:700,color:"#CC3333",marginBottom:4}}>{c.q}</div>
+<div style={{fontFamily:DS,fontSize:13,color:DK,lineHeight:1.6,marginBottom:6}}>{c.neg}</div>
+<div style={{fontFamily:DS,fontSize:12,color:c.catColor,fontWeight:600}}>Category: {c.catName}</div>
+</div>)}
+</div>}
+
+{checkedItems.length>0&&<div>
+<h3 style={{fontFamily:DS,color:"#2D7D2D",fontSize:16,margin:"0 0 12px"}}>{"\u2713"} Strengths ({checkedItems.length})</h3>
+{checkedItems.map((c,i)=><div key={i} style={{background:"#E8F4E8",borderRadius:10,padding:16,marginBottom:10,borderLeft:"4px solid #2D7D2D"}}>
+<div style={{fontFamily:DS,fontSize:14,fontWeight:700,color:"#2D7D2D",marginBottom:4}}>{c.q}</div>
+<div style={{fontFamily:DS,fontSize:13,color:DK,lineHeight:1.6}}>{c.pos}</div>
+</div>)}
+</div>}
+
+<div style={{background:CREAM,borderRadius:10,padding:20,marginTop:20,border:"2px solid "+AMBER+"40"}}>
+<h3 style={{fontFamily:DS,color:NAVY,fontSize:15,margin:"0 0 8px"}}>Next Steps</h3>
+<p style={{fontFamily:DS,color:DK,fontSize:13,lineHeight:1.7,margin:0}}>
+{pct>=88?"Share this task design with your department. Consider adding it to the school's AI task library as an example of good practice. Monitor student outputs for any unexpected patterns.":
+pct>=69?"Address the flagged areas before assigning the task. Consider piloting with a small group first. After the task, review student Thinking Logs to evaluate the quality of AI interactions.":
+pct>=50?"Prioritise the Assessment Integrity and Task Design categories first. Use the AInquiry framework to restructure the task. Discuss with a colleague or coordinator before assigning.":
+"Use the AInquiry framework to redesign from scratch. Start by identifying: what is the learning that should happen? Then design the task so that AI supports\u2014but cannot replace\u2014that learning. Consider making this task AI-free instead."}
+</p>
+</div>
+</div>
+</div>}
+</div>
+}
+
+function FAQ(){
+const[cat,setCat]=useState("Students");const[open,setOpen]=useState(null);
+const items=faqData.find(f=>f.cat===cat)?.items||[];
+return <div style={{maxWidth:900,margin:"0 auto",padding:"32px 20px"}}>
+<h1 style={{fontFamily:PF,color:NAVY,fontSize:32,marginBottom:20}}>FAQ</h1>
+<div style={{display:"flex",gap:8,marginBottom:24}}>
+{faqData.map(f=><div key={f.cat} onClick={()=>{setCat(f.cat);setOpen(null)}} style={{background:cat===f.cat?NAVY:"#fff",color:cat===f.cat?"#fff":NAVY,border:"2px solid "+NAVY,borderRadius:10,padding:"8px 20px",cursor:"pointer",fontFamily:DS,fontSize:14,fontWeight:600}}>{f.cat}</div>)}
+</div>
+{items.map((item,i)=><div key={i} style={{background:"#fff",borderRadius:12,border:open===i?"2px solid "+NAVY:"1px solid #e0e0e0",marginBottom:10}}>
+<div onClick={()=>setOpen(open===i?null:i)} style={{padding:"14px 20px",cursor:"pointer",display:"flex",justifyContent:"space-between",alignItems:"center",userSelect:"none"}}>
+<span style={{fontFamily:DS,fontWeight:700,color:NAVY,fontSize:14}}>{item.q}</span>
+<span style={{fontSize:14,color:"#999",transform:open===i?"rotate(180deg)":"none",transition:"transform 0.2s"}}>\u25BC</span>
+</div>
+{open===i&&<div style={{padding:"0 20px 16px",borderTop:"1px solid #eee"}}>
+<p style={{fontFamily:DS,color:DK,fontSize:13,lineHeight:1.6,marginTop:10}}>{item.a}</p>
+</div>}
+</div>)}
+</div>
+}
+
+
+function App(){
+const[active,setActive]=useState("home");
+return <div style={{background:LIGHT,minHeight:"100vh"}}>
+<Nav active={active} go={setActive}/>
+{active==="home"&&<Home go={setActive}/>}
+{active==="lorie"&&<LorieBuilder/>}
+{active==="examples"&&<Examples/>}
+{active==="frameworks"&&<Frameworks/>}
+{active==="atl"&&<ATLExplorer/>}
+{active==="subjects"&&<Subjects/>}
+{active==="activities"&&<Activities/>}
+{active==="journal"&&<Journal/>}
+{active==="evaluator"&&<TaskEvaluator/>}
+{active==="integrity"&&<Integrity/>}
+{active==="charter"&&<Charter/>}
+{active==="faq"&&<FAQ/>}
+</div>
+}
+
+ReactDOM.createRoot(document.getElementById("root")).render(<App/>);
+</script>
+</body>
+</html>];
+
+const lorieExamples=[
+{subject:"Language B Spanish",task:"Preparing for Individual Oral",icon:"\u{1F5E3}",group:"Languages",L:"I want to understand how urban migration in Colombia connects to the theme of 'Social organisation.'",O:"Give me three discussion points I could develop, each linked to a specific aspect of my selected visual stimulus.",R:"Respond as a cultural studies expert familiar with Colombian urbanisation patterns.",I:"I've selected a photograph of a Bogot\u00E1 neighbourhood showing informal housing. My initial idea is that rapid urbanisation creates inequality, but I think that's too broad.",E:"Good discussion points should be specific to Colombia, culturally grounded, and allow me to demonstrate range of vocabulary related to social issues.",assembled:"I'm studying DP Spanish B and preparing for my Individual Oral on the theme of 'Social organisation.' I want to understand how urban migration in Colombia connects to this theme.\n\nI've selected a photograph of a Bogot\u00E1 neighbourhood showing informal housing. My initial idea is that rapid urbanisation creates inequality, but I think that's too broad.\n\nAs a cultural studies expert familiar with Colombian urbanisation patterns, give me three discussion points I could develop, each linked to a specific aspect of this visual stimulus.\n\nGood discussion points should be specific to Colombia, culturally grounded, and allow me to demonstrate range of vocabulary related to social issues."},
+{subject:"Language B French",task:"Vocabulary Building for Theme",icon:"\u{1F1EB}\u{1F1F7}",group:"Languages",L:"I want to expand my vocabulary for discussing environmental issues in French, specifically around 'Sharing the planet.'",O:"Give me 15 topic-specific French phrases related to climate activism and youth engagement, with an example sentence for each.",R:"Respond as a native French speaker who follows current French-language media on environmental topics.",I:"I already know basic terms like 'le r\u00E9chauffement climatique', 'les \u00E9missions de CO\u2082', and 'le d\u00E9veloppement durable'. I need more nuanced, current expressions.",E:"Good phrases should sound natural (not textbook), be appropriate for B HL level, and include at least some informal/colloquial expressions alongside formal ones.",assembled:"I'm a DP French B HL student and I want to expand my vocabulary for discussing environmental issues, specifically around the theme 'Sharing the planet.'\n\nI already know basic terms like 'le r\u00E9chauffement climatique', 'les \u00E9missions de CO\u2082', and 'le d\u00E9veloppement durable'. I need more nuanced, current expressions.\n\nAs a native French speaker who follows current French-language media on environmental topics, give me 15 topic-specific French phrases related to climate activism and youth engagement, with an example sentence for each.\n\nGood phrases should sound natural (not textbook), be appropriate for B HL level, and include at least some informal/colloquial expressions alongside formal ones."},
+{subject:"German ab initio",task:"Writing a Blog Post",icon:"\u{1F1E9}\u{1F1EA}",group:"Languages",L:"I want to understand how to structure a blog post in German about healthy eating for the 'Well-being' theme.",O:"Give me a checklist of 6 features a German-language blog post should have at ab initio level, with one German example phrase for each.",R:"Respond as a DP German ab initio teacher who focuses on text-type conventions.",I:"I can write simple sentences about food (Ich esse gern Obst, Gem\u00FCse ist gesund). I know connectives: und, aber, weil. My teacher says my writing sounds like a list of sentences rather than a blog.",E:"Features should be specific to the blog text type. Example phrases should use only ab initio level grammar and vocabulary.",assembled:"I'm a DP German ab initio student and I want to understand how to structure a blog post about healthy eating.\n\nI can write simple sentences (Ich esse gern Obst, Gem\u00FCse ist gesund). I know connectives: und, aber, weil. My teacher says my writing sounds like a list rather than a blog.\n\nAs a DP German ab initio teacher, give me a checklist of 6 features a blog post should have at ab initio level, with one German example phrase for each.\n\nFeatures should be specific to the blog text type. Example phrases should use only ab initio level grammar and vocabulary."},
+{subject:"Biology HL",task:"Evaluating Experimental Design",icon:"\u{1F52C}",group:"Sciences",L:"I want to understand the limitations of my experimental design for measuring enzyme activity at different temperatures.",O:"Identify three potential weaknesses in my method and suggest how each could be controlled.",R:"Act as a DP Biology examiner reviewing a student's investigation.",I:"My method: catalase from potato extract, O\u2082 production via water displacement, tested at 20-60\u00B0C in 10\u00B0C intervals, measured every 30 seconds for 5 minutes, 3 trials per temperature.",E:"Good feedback should reference specific steps in my procedure and explain why each weakness affects reliability or validity.",assembled:"I'm a DP Biology HL student investigating enzyme activity at different temperatures.\n\nMy method: catalase from potato extract, O\u2082 production via water displacement, tested at 20-60\u00B0C in 10\u00B0C intervals, measured every 30 seconds for 5 minutes, 3 trials per temperature.\n\nAs a DP Biology examiner, identify three potential weaknesses in my method and suggest how each could be controlled.\n\nFeedback should reference specific steps and explain why each weakness affects reliability or validity."},
+{subject:"Physics HL",task:"Connecting Theory to IA Data",icon:"\u269B",group:"Sciences",L:"I want to understand why my double-slit experiment data doesn't match the theoretical intensity pattern.",O:"Suggest three specific physical reasons my data might deviate from theory, and explain what each deviation would look like in my graph.",R:"Respond as a university physics lab demonstrator who helps students troubleshoot optics experiments.",I:"Red laser (650nm), double slit (0.25mm separation, 0.08mm slit width), screen 1.5m away, intensity measured with light sensor. Central maximum is bright but secondary maxima are much dimmer than predicted.",E:"Responses should distinguish between systematic errors and genuine physical effects, and help me decide which factor is most significant for my IA.",assembled:"I'm a DP Physics HL student investigating the double-slit experiment. My central maximum is bright but secondary maxima are much dimmer than predicted.\n\nSetup: Red laser (650nm), double slit (0.25mm separation, 0.08mm slit width), screen 1.5m away, intensity measured with light sensor.\n\nAs a physics lab demonstrator, suggest three physical reasons my data deviates from theory, and what each deviation looks like in my graph.\n\nDistinguish between systematic errors and genuine physical effects. Help me decide which is most significant for my IA."},
+{subject:"Chemistry SL",task:"Understanding a Mechanism",icon:"\u2697",group:"Sciences",L:"I want to understand why SN1 reactions produce racemic mixtures while SN2 reactions produce inverted products.",O:"Explain the mechanism step by step, focusing on geometry at each stage. Explain WHY the geometry matters.",R:"Respond as a university organic chemistry tutor explaining to a strong IB student.",I:"I understand SN1 has a carbocation intermediate and SN2 is concerted. I can draw both mechanisms. But I don't understand why the planar carbocation leads to a 50/50 mix.",E:"Use spatial reasoning, reference sp2 vs sp3 geometry, and help me visualise why attack from either side is equally probable.",assembled:"I'm studying DP Chemistry and want to understand why SN1 produces racemic mixtures while SN2 produces inverted products.\n\nI know SN1 has a carbocation intermediate and SN2 is concerted. I can draw both. But I don't get why the planar carbocation leads to 50/50.\n\nAs an organic chemistry tutor, explain step by step, focusing on geometry. Explain WHY geometry matters.\n\nUse spatial reasoning, reference sp2 vs sp3 carbon, help me visualise equal probability of attack from either side."},
+{subject:"ESS",task:"Evaluating Environmental Metrics",icon:"\u{1F33F}",group:"Sciences",L:"I want to understand the strengths and limitations of ecological footprint compared to alternative sustainability metrics.",O:"Compare ecological footprint with two alternatives. For each, give one strength and one significant blind spot.",R:"Respond as an environmental systems researcher critical of oversimplified metrics but who understands their communicative value.",I:"I understand how ecological footprint is calculated (biocapacity, global hectares). I got 3.2 planets on the calculator. My teacher said it doesn't account for biodiversity loss.",E:"Name specific real metrics, explain what each measures that others miss, and help me understand why no single metric captures 'sustainability.'",assembled:"I'm a DP ESS student studying ecological footprint. I understand the calculation but my teacher said it misses biodiversity loss.\n\nAs an environmental researcher, compare ecological footprint with two alternative metrics. For each, one strength and one blind spot.\n\nName specific real metrics. Explain what each measures that others miss. Help me understand why no single metric captures sustainability."},
+{subject:"Mathematics HL",task:"IA Exploration Refinement",icon:"\u{1F4D0}",group:"Mathematics",L:"I want to understand whether my IA topic has enough mathematical depth for HL.",O:"Evaluate my topic and suggest two extensions that increase sophistication without making it unmanageable.",R:"Respond as a DP Mathematics HL teacher who has moderated many explorations.",I:"My topic: modelling population growth using differential equations. I've done exponential and logistic models. I can do separation of variables. Wondering about Euler's method.",E:"Be specific about which HL syllabus topics connect. Distinguish between 'impressive-looking' and 'mathematically meaningful' extensions.",assembled:"I'm working on my DP Maths HL Exploration on population growth modelling with differential equations. Done exponential and logistic models, can do separation of variables.\n\nAs an experienced HL teacher, evaluate my topic and suggest two extensions that increase depth without becoming unmanageable.\n\nBe specific about syllabus connections. Distinguish between impressive-looking and mathematically meaningful extensions."},
+{subject:"TOK",task:"Developing a Knowledge Question",icon:"\u{1F914}",group:"TOK",L:"I want to understand how different Ways of Knowing lead to different conclusions about the same historical event.",O:"Don't give me a knowledge question. Give me three different WOKs for the Fall of the Berlin Wall, with one example of how each leads to a different interpretation.",R:"Respond as a TOK examiner who values conceptual depth over breadth.",I:"I've been thinking about reason and emotion as WOKs, but everyone picks those. I want something less obvious.",E:"Suggestions should be genuinely distinct WOKs and each should lead to a demonstrably different interpretation.",assembled:"I'm developing TOK thinking about how different WOKs lead to different conclusions about the same event.\n\nI've considered reason and emotion but want something less obvious.\n\nAs a TOK examiner valuing depth, give me three WOKs for the Fall of the Berlin Wall, each leading to a different interpretation.\n\nWOKs should be genuinely distinct, each leading to demonstrably different interpretations."},
+{subject:"TOK",task:"Exhibition Object Analysis",icon:"\u{1F50E}",group:"TOK",L:"I want to understand how my TOK exhibition object connects to 'What counts as knowledge?' beyond the obvious.",O:"Give me three angles for analysing my object. For each, suggest which AOK is most relevant.",R:"Respond as a philosopher of science familiar with TOK exhibition criteria.",I:"My object is a COVID-19 rapid antigen test. The obvious connection is it 'produces knowledge' about infection. My teacher said go deeper\u2014something about the nature of the knowledge, its reliability, who decides what the result means.",E:"Each angle should be philosophically substantive, connect to specific AOK concepts, and give enough for a full commentary.",assembled:"I'm preparing my TOK Exhibition on 'What counts as knowledge?' with a COVID-19 rapid antigen test.\n\nThe obvious connection is it produces knowledge about infection. My teacher wants me to go deeper.\n\nAs a philosopher of science, give me three analytical angles, each with its most relevant AOK.\n\nAngles should be philosophically substantive, not just descriptive. Avoid angles that lead to a science report rather than TOK analysis."},
+{subject:"Global Politics",task:"Engagement Activity Research",icon:"\u{1F30D}",group:"Individuals & Societies",L:"I want to understand how power dynamics between Global North and South shape climate change negotiations.",O:"Compare how two specific countries (one from each) approached COP28, including stated positions and underlying interests.",R:"Respond as an international relations analyst writing for a policy briefing.",I:"I know developing nations argue for climate finance and historical responsibility. I've read about loss and damage funding. But I lack specific country positions from COP28.",E:"Include specific policy positions, name actual negotiators or documents, distinguish public rhetoric from strategic interests.",assembled:"I'm studying DP Global Politics and want to understand North-South power dynamics in climate negotiations.\n\nI know about climate finance arguments and loss and damage. But I lack specific COP28 positions.\n\nAs an IR analyst, compare two countries' COP28 approaches\u2014one Global North, one Global South.\n\nInclude specific positions, name negotiators/documents, distinguish rhetoric from strategic interests."},
+{subject:"History HL",task:"Evaluating Historiography",icon:"\u{1F4DC}",group:"Individuals & Societies",L:"I want to understand how different historians interpret the causes of the Chinese Civil War.",O:"Identify three historians with distinct interpretations of why the CCP won in 1949, summarise each in 2-3 sentences, name the school of thought.",R:"Respond as a historiography lecturer teaching a seminar on modern Chinese history.",I:"I've read about Mao's military strategy and KMT corruption. My textbook mentions peasant support and Japanese invasion. But I can't find genuinely different perspectives.",E:"Name real historians with real published works I can find and cite. The three interpretations should be genuinely distinct.",assembled:"I'm a DP History HL student studying the Chinese Civil War. I've read about Mao's strategy and KMT corruption but can't find distinct historiographical perspectives.\n\nAs a historiography lecturer, identify three historians with different interpretations of why the CCP won in 1949.\n\nName real historians with real published works. Interpretations should be genuinely distinct, not just different emphases."},
+{subject:"Economics HL",task:"Evaluating Policy Analysis",icon:"\u{1F4CA}",group:"Individuals & Societies",L:"I want to understand whether my minimum wage analysis uses economic theory correctly.",O:"Review my draft and identify: (1) theoretical errors, (2) unstated assumptions, (3) one strong counter-argument.",R:"Respond as a DP Economics HL examiner who values precise terminology and balanced evaluation.",I:"My draft: 'Raising the minimum wage to $15 will cause unemployment because firms face higher costs and will reduce their labour demand. The demand curve for labour shifts left, creating a surplus.'",E:"Point out the specific diagram error, explain why market structure matters, suggest a counter-argument using a different economic model.",assembled:"I'm a DP Economics HL student. Review my minimum wage analysis for theoretical accuracy.\n\nMy draft: 'Raising the minimum wage causes unemployment because firms reduce labour demand. The demand curve shifts left, creating a surplus.'\n\nAs an examiner, identify: (1) theoretical errors, (2) unstated assumptions, (3) one strong counter-argument.\n\nPoint out the diagram error, explain why market structure matters, suggest a counter using a different model."},
+{subject:"Psychology SL",task:"Evaluating a Research Study",icon:"\u{1F9E0}",group:"Individuals & Societies",L:"I want to understand the methodological strengths and limitations of Loftus and Palmer (1974).",O:"Give me three strengths and three limitations, each with a one-sentence explanation of WHY it matters.",R:"Respond as a DP Psychology examiner who rewards connecting limitations to validity.",I:"I know the study used different verb conditions ('smashed' vs 'contacted') and measured speed estimates. It's a lab experiment. I wrote 'it lacks ecological validity' but my teacher said that's too vague.",E:"Strengths/limitations should be specific to THIS study, not generic. Each should explain impact on internal or external validity.",assembled:"I'm a DP Psychology SL student evaluating Loftus and Palmer (1974). I know it used verb conditions and measured speed estimates.\n\nI wrote 'lacks ecological validity' but my teacher said too vague.\n\nAs a Psychology examiner, give me three strengths and three limitations, each explaining WHY it matters for the study's conclusions.\n\nBe specific to THIS study. Explain impact on internal or external validity in concrete terms."},
+{subject:"Geography SL",task:"Finding Specific Case Studies",icon:"\u{1F5FA}",group:"Individuals & Societies",L:"I want specific examples of globalisation affecting cultural practices in a named Southeast Asian community.",O:"Three examples from ONE named community: what changed, what was preserved, what tension exists.",R:"Respond as a cultural geographer sceptical of both 'globalisation destroys culture' and 'globalisation enriches culture.'",I:"I understand cultural diffusion, glocalisation, cultural imperialism. But all my examples are generic (McDonald's, Hollywood). I need nuance.",E:"Name a real community and real practices. Show complexity. I should be able to verify through independent research.",assembled:"I'm a DP Geography SL student studying globalisation and cultural change. My examples are too generic.\n\nAs a cultural geographer, give me three examples from ONE named Southeast Asian community: what changed, preserved, and what tension exists.\n\nName real practices. Show complexity, not just 'good' or 'bad.' I should be able to verify independently."},
+{subject:"English A Lit",task:"Exploring Authorial Choices",icon:"\u{1F4DA}",group:"English A",L:"I want to understand how Atwood uses narrative structure in The Handmaid's Tale to create unreliability.",O:"Identify three structural techniques that contribute to narrative unreliability, with a page reference range for each.",R:"Respond as a literary critic specialising in narrative theory and feminist literature.",I:"I've noticed the fragmented timeline and the epilogue. I think night sections vs other sections create different reliability levels, but I can't articulate this.",E:"Name specific literary terms, connect technique to reader effect, go beyond surface-level observations.",assembled:"I'm studying The Handmaid's Tale and want to understand how Atwood creates narrative unreliability through structure.\n\nI've noticed the fragmented timeline and epilogue. Night sections seem different but I can't articulate why.\n\nAs a literary critic, identify three structural techniques contributing to unreliability with page ranges.\n\nUse specific literary terms. Connect technique to reader effect. Go beyond study-guide observations."},
+{subject:"English A Lang & Lit",task:"Analysing Rhetoric",icon:"\u{1F4F0}",group:"English A",L:"I want to understand how a political speech uses rhetorical strategies to construct an audience.",O:"Identify four rhetorical strategies but DON'T analyse them\u2014give me a guiding question for each instead.",R:"Respond as a rhetoric professor who believes students learn best by discovering techniques themselves.",I:"I'm analysing Obama's 2004 DNC speech. I see anaphora and anecdotes. But there's more with how he constructs 'us' vs 'them.'",E:"Questions should point toward real techniques but be open enough that I do the analytical work. Each targets a different rhetorical layer.",assembled:"I'm analysing Obama's 2004 DNC speech for rhetorical strategies that construct an audience.\n\nI see anaphora and anecdotes but know there's more going on with 'us' vs 'them.'\n\nAs a rhetoric professor, identify four strategies but DON'T analyse them\u2014give guiding questions instead.\n\nQuestions should point toward real techniques but require me to do the analysis. Each targets a different layer."},
+{subject:"Extended Essay",task:"Refining a Research Question",icon:"\u{1F4DD}",group:"Extended Essay",L:"I want to understand whether my EE research question is focused enough for genuine argument.",O:"Three alternative versions, each more focused than the last, with one sentence explaining what each gains.",R:"Respond as an EE supervisor who prioritises analytical depth over breadth.",I:"My RQ: 'To what extent did social media influence the Arab Spring?' I know it's too broad. Interested in Egypt, maybe Twitter.",E:"Alternatives should be answerable in 4,000 words, require argumentation not description, each noticeably more specific.",assembled:"My EE RQ: 'To what extent did social media influence the Arab Spring?' I know it's too broad. Interested in Egypt/Twitter.\n\nAs an EE supervisor, give me three alternatives, each more focused, with one sentence explaining what each gains.\n\nMust be answerable in 4,000 words, require argumentation, each noticeably more specific than the last."},
+{subject:"CAS",task:"Developing a Service Project",icon:"\u{1F4AA}",group:"CAS",L:"I want to understand whether my CAS project genuinely addresses a community need.",O:"Ask me five critical questions to determine if it's meaningful and sustainable\u2014don't answer them.",R:"Respond as a CAS coordinator who spots the difference between genuine service and performative volunteerism.",I:"My idea: monthly beach cleanup with environment club for 6 months. Coastal city with visible plastic pollution. Haven't contacted local organisations.",E:"Questions should challenge assumptions, address sustainability, community voice, and genuine impact. At least one should be uncomfortable.",assembled:"I'm planning a CAS service project: monthly beach cleanups for 6 months. Coastal city, visible pollution. No local contacts yet.\n\nAs a CAS coordinator, ask me five critical questions about whether this is meaningful and sustainable. Don't answer them.\n\nChallenge my assumptions. Address sustainability, community voice, impact. At least one should be productively uncomfortable."},
+{subject:"Visual Arts",task:"Comparative Study",icon:"\u{1F3A8}",group:"The Arts",L:"I want to understand how Kahlo and Bacon both use the body to express psychological states.",O:"Three formal or conceptual connections, with one named artwork from each artist per connection.",R:"Respond as a curator specialising in exhibitions about the body in art.",I:"I've chosen Kahlo's 'The Broken Column' and Bacon's 'Three Studies for Figures at the Base of a Crucifixion.' My analysis keeps saying 'both show pain'\u2014not enough.",E:"Go beyond 'both show suffering.' Identify specific formal strategies and connect them to meaning.",assembled:"I'm comparing Kahlo and Bacon for my Comparative Study. My analysis of 'The Broken Column' and Bacon's 'Three Studies' keeps saying 'both show pain.'\n\nAs a curator, give me three formal/conceptual connections with one artwork from each artist per connection.\n\nGo beyond 'both show suffering.' Identify specific formal strategies (space, colour, composition) and connect to meaning."},
+{subject:"Music",task:"Composition Techniques",icon:"\u{1F3B5}",group:"The Arts",L:"I want to understand how minimalist composers create development despite limited material.",O:"Three techniques for creating forward momentum, with one named piece and approximate timestamp for each.",R:"Respond as a composition lecturer who performs minimalist works.",I:"I've listened to Reich's 'Music for 18 Musicians' and Glass's 'Einstein on the Beach.' I understand phasing and arpeggiated patterns. But my own minimalist piece sounds static.",E:"Techniques should be specific enough to try in my own composition. Explain the mechanism, not just the effect.",assembled:"I'm a DP Music student. I understand Reich's phasing and Glass's patterns but my own minimalist piece sounds static.\n\nAs a composition lecturer, explain three techniques for creating momentum, with a named piece and timestamp for each.\n\nTechniques should be specific enough to try myself. Explain the mechanism, not just the effect."},
+{subject:"MYP English",task:"Analysing Setting (Criterion A)",icon:"\u{1F4D6}",group:"MYP",L:"I want to understand how the author uses setting to develop the theme of isolation.",O:"Don't analyse it. Give me three guiding questions about setting for my Criterion A paragraph.",R:"Respond as an MYP English teacher coaching a Year 10 student from retelling to analysis.",I:"The story is set in a remote farmhouse during winter. Snow and silence are mentioned a lot. My analysis: 'the setting is isolated which shows the character is lonely.' Teacher wrote 'go deeper\u2014HOW?'",E:"Questions should focus on specific authorial choices (word choice, imagery, sensory detail), leading to analysis not summary.",assembled:"I'm an MYP Year 10 student analysing a short story set in a remote winter farmhouse. My analysis is too surface-level.\n\nAs an MYP English teacher, give me three guiding questions about setting for Criterion A. Don't analyse it for me.\n\nQuestions should focus on authorial choices\u2014word choice, imagery, sensory detail\u2014leading to analysis, not summary."},
+{subject:"MYP Sciences",task:"Designing a Fair Test (Crit B/C)",icon:"\u{1F9EA}",group:"MYP",L:"I want to understand whether my experimental design is a fair test.",O:"Identify: (1) my variables, (2) three controlled variables I missed, (3) one improvement for reliability.",R:"Respond as an MYP Science teacher helping a Year 9 student.",I:"My investigation: Does light colour affect plant growth? 4 plants under different coloured cellophane, measure height after 2 weeks. Same plant type and water amount.",E:"Be specific to MY experiment. Controlled variables should be realistic for a school lab. Explain WHY the improvement helps.",assembled:"I'm an MYP Year 9 student. Does light colour affect plant growth? 4 plants under coloured cellophane, same type and water.\n\nAs an MYP Science teacher, identify my variables, three controlled variables I missed, and one reliability improvement.\n\nBe specific to my experiment. Controlled variables should be realistic for school. Explain WHY."},
+{subject:"MYP Mathematics",task:"Real-World Patterns (Criterion D)",icon:"\u{1F522}",group:"MYP",L:"I want to connect my triangular number pattern to a real-world situation for Criterion D.",O:"Two real-world contexts, explaining what variables represent and one limitation for each.",R:"Respond as an MYP Maths teacher who values genuine real-life connections.",I:"I found triangular numbers (1,3,6,10,15...) with formula n(n+1)/2. I wrote 'handshakes at a party' but teacher said go further and discuss limitations.",E:"Contexts should be genuinely useful, not textbook clich\u00E9s. Limitations should be specific and mathematical.",assembled:"I'm an MYP student studying triangular numbers with formula n(n+1)/2. 'Handshakes at a party' wasn't enough.\n\nAs an MYP Maths teacher, suggest two real-world contexts with what variables represent and one limitation each.\n\nContexts should be genuinely useful. Limitations should be specific and mathematical."},
+{subject:"MYP Individuals & Societies",task:"Source Evaluation (Criterion C)",icon:"\u{1F3DB}",group:"MYP",L:"I want to evaluate a primary source for bias and reliability using OPVL.",O:"Four specific questions to evaluate origin, purpose, value, limitations. Don't answer them.",R:"Respond as an MYP Humanities teacher coaching Year 10 on Criterion C.",I:"My source: letter from a British colonial administrator in India, 1857, calling the Sepoy Rebellion a 'mutiny' and rebels 'ungrateful.' I know it's biased but can only say 'he's British so he's biased.'",E:"Push beyond surface-level bias detection. Each question targets a different evaluation dimension.",assembled:"I'm evaluating a letter from a British administrator in India (1857) calling the Sepoy Rebellion a 'mutiny.' I can only say 'he's British so biased.'\n\nAs an MYP teacher, give me four OPVL questions. Don't answer them.\n\nPush beyond surface-level bias. Each question should target a different dimension of evaluation."},
+{subject:"MYP Design",task:"Design Brief (Criterion A)",icon:"\u{1F4A1}",group:"MYP",L:"I want to know if my sustainable packaging design brief is specific enough.",O:"Tell me: (1) what's strong, (2) what's too vague, (3) three research questions to make it more specific.",R:"Respond as an MYP Design teacher who knows strong vs weak Criterion A submissions.",I:"My brief: 'Design sustainable packaging for school lunches because plastic is bad. Client: school canteen. Must keep food fresh and be biodegradable.' Teacher said too general.",E:"Reference Criterion A expectations. Research questions should narrow from general to specific. Don't redesign it for me.",assembled:"My MYP Design brief: 'Sustainable packaging for school lunches, must be fresh and biodegradable.' Teacher said too general.\n\nAs a Design teacher, tell me what's strong, what's vague, and give three research questions to narrow it.\n\nReference Criterion A expectations. Don't redesign for me\u2014help me see what's missing."},
+{subject:"MYP Arts (Visual)",task:"Artist Statement (Criterion D)",icon:"\u{1F58C}",group:"MYP",L:"I want to move from describing my process to reflecting on artistic choices.",O:"Three sentence starters moving from description to reflection, with what makes each effective.",R:"Respond as an MYP Visual Arts teacher coaching Criterion D reflective writing.",I:"Mixed-media identity portrait influenced by Kahlo's symbolism and Basquiat's mark-making. My statement: 'I used bright colours like Kahlo and messy lines like Basquiat.' Teacher said it's description, not reflection.",E:"Starters should lead to genuine reflection, connecting decisions to meaning and intention, not just technique.",assembled:"My MYP Visual Arts statement says 'I used bright colours like Kahlo and messy lines like Basquiat.' Teacher says it's description.\n\nAs a Visual Arts teacher, give me three sentence starters moving from description to reflection, explaining why each works.\n\nStarters should connect artistic decisions to meaning and intention, not just technique."},
+{subject:"MYP PHE",task:"Performance Analysis (Criterion C)",icon:"\u26BD",group:"MYP",L:"I want to know what specific aspects of my basketball free throw to analyse.",O:"Four key technical elements to observe in my video, with what 'correct' technique looks like for each.",R:"Respond as a sports biomechanics coach who breaks technique into observable components.",I:"I filmed 20 free throws (55% success). My shot looks different from good shooters. I think my elbow flares and follow-through is inconsistent.",E:"Elements should be specific and observable in video. Descriptions should use clear biomechanical language for an MYP student.",assembled:"I'm analysing my basketball free throw for MYP PHE Criterion C. 55% success rate. Elbow may flare, inconsistent follow-through.\n\nAs a biomechanics coach, identify four technical elements to observe in my video with what correct technique looks like.\n\nElements should be specific and observable. Use clear biomechanical language an MYP student can understand."}
+];
+
+const activities=[
+{name:"The AI Audit",time:"20\u201325 min",atl:"Thinking (critical evaluation)",fw:"Debunk",desc:"Give students AI-generated text on a topic they've studied. They annotate: accurate? Inaccurate? Missing? Oversimplified? Culturally biased? Share in pairs, then class discussion.",ext:"Students rewrite the AI text to correct errors. Compare rewrites\u2014diversity of corrections reveals depth of understanding."},
+{name:"Prompt Workshop",time:"30\u201335 min",atl:"Communication, Self-management",fw:"Question + Iterate",desc:"Students write a full LORIE prompt. Partners evaluate: Is L clear? Is I substantial? Is E specific? Written feedback, revision, then run the prompt. Better prompts produce better outputs.",ext:"Create a class 'Prompt Hall of Fame'\u2014best prompts displayed and discussed."},
+{name:"Human vs. AI Debate",time:"40\u201345 min",atl:"Thinking, Social skills",fw:"Collaborate + Debunk",desc:"15 min independent research (pen/paper). 10 min AI-generated arguments. Pairs compare: What did you find that AI missed? What did AI surface? Which arguments are stronger?",ext:"Each pair presents their strongest combined argument\u2014must include at least one point from each source."},
+{name:"Translation Quality Check",time:"25\u201330 min",atl:"Communication, Thinking",fw:"Debunk + Iterate",desc:"Students write a paragraph in the target language. AI translates an English version into the same language. Compare: natural phrasing? Cultural appropriateness? Grammatical errors?",ext:"Categorise the types of AI errors\u2014systematic weaknesses become a resource for understanding LLM limitations."},
+{name:"The Thinking Log",time:"5 min per interaction",atl:"Self-management, Thinking",fw:"Reflect + Iterate",desc:"Ongoing metacognitive habit. Four questions per AI interaction: (1) My question? (2) What I already knew? (3) What I learned? (4) What I changed and why?",ext:"Weekly review: students identify patterns. Are prompts improving? Catching more errors?"},
+{name:"Perspective Swap",time:"35 min",atl:"Thinking, Social skills",fw:"Question + Collaborate",desc:"Each student takes a debate position independently. Uses AI to generate the strongest counter-argument. Revises their position\u2014strengthening it or acknowledging merit.",ext:"Pairs present both sides. Class votes on which argument improved most through AI interaction."},
+{name:"Source Verification Challenge",time:"30 min",atl:"Research, Thinking",fw:"Debunk",desc:"Ask AI for 5 sources on a topic. Students verify each: Exists? Real author? Legitimate publication? Correct date? Accurate representation? Report reliability scores.",ext:"Track AI sourcing accuracy over a term. Powerful evidence for why verification is non-negotiable."},
+{name:"Concept Mapping with AI",time:"25 min",atl:"Thinking",fw:"Iterate + Question",desc:"Students create a concept map by hand. Ask AI for connections they missed. Evaluate each: Valid? Deepens understanding or just adds complexity? Add only justified connections.",ext:"Compare pre-AI and post-AI maps. Did AI improve understanding or just make it look more complex?"},
+{name:"The Bias Detector",time:"30 min",atl:"Thinking, Research",fw:"Debunk + Collaborate",desc:"Give the same prompt in English and another language. Compare outputs: Different perspectives? Different emphasis? Different cultural assumptions? Document and discuss why differences exist.",ext:"Research what % of web content is in each language. Connect findings to the bias observed."},
+{name:"Before & After Gallery",time:"35 min",atl:"Communication, Thinking",fw:"Iterate",desc:"Write a first draft independently (10 min). Use AI for feedback and revise (15 min). Display before/after versions. Discuss: What improved? What was lost? Did the student's voice survive?",ext:"Collect anonymous before/after pairs. Can classmates tell which is 'more human'?"},
+{name:"The Hallucination Hunt",time:"25 min",atl:"Research, Thinking",fw:"Debunk",desc:"Ask AI to write about a topic students know well. Identify every factual claim, verify each independently. Calculate the AI's 'accuracy rate' for that topic.",ext:"Repeat across topics and tools. Build a class database of AI reliability by subject."},
+{name:"Ethical Dilemma Simulator",time:"40 min",atl:"Thinking, Social skills",fw:"Question + Collaborate",desc:"Present 5 real AI use scenarios. Students classify each as Acceptable/Caution/Not Acceptable using the integrity matrix, then defend their classification in groups.",ext:"Students write their own scenarios for other groups. Creates a growing case study bank."},
+{name:"The Reverse Engineer",time:"30 min",atl:"Thinking, Communication",fw:"Question + Iterate",desc:"Give students an AI output. Challenge them to reverse-engineer the LORIE prompt that produced it. Compare attempts\u2014reveals what makes prompts effective.",ext:"Run reconstructed prompts and compare outputs to the original. How much does prompt precision matter?"},
+{name:"The Knowledge Gap Finder",time:"20 min",atl:"Self-management, Research",fw:"Question",desc:"Before a new unit, write everything you know (5 min). Ask AI for key concepts. Compare lists to identify specific gaps\u2014becomes your personal learning agenda.",ext:"At unit end, revisit gap list. How many gaps closed? Which remain? What new questions emerged?"},
+{name:"AI as Peer Reviewer",time:"35 min",atl:"Communication, Thinking",fw:"Iterate + Debunk",desc:"Submit a draft to AI for feedback using LORIE. Before implementing ANY changes, evaluate each suggestion: Correct? Improves my work? Maintains my voice? Annotate with accept/reject and reasons.",ext:"Compare AI feedback with actual peer feedback on the same draft. Where do humans give better feedback?"},
+{name:"Mechanized Convergence Test",time:"30 min",atl:"Thinking, Social skills",fw:"Collaborate + Debunk",desc:"Whole class uses the SAME prompt on the SAME topic. Collect outputs anonymously. Display them. How similar are they? What original ideas are missing? Demonstrates convergence viscerally.",ext:"Repeat with 10 min independent thinking FIRST. Compare diversity of outputs. The difference is striking."}
+];
+
+const subjectData=[
+{name:"Language Acquisition",icon:"\u{1F5E3}",color:"#E8A317",g:["Chatbots provide low-stakes practice but must not replace human communicative interaction","LLM outputs in non-English languages may be less reliable\u2014always verify in the target language","AI-generated visual stimuli for IO must be culturally accurate and not reinforce stereotypes","Handwriting has documented benefits for language acquisition (Ying et al., 2024)","Students should compare AI output against their own language knowledge\u2014builds linguistic analysis and AI literacy","Ensure students can enter diacritical marks across all school platforms","PromptED database offers ready-to-use prompts for language educators\u2014teachers can contribute","AI tools like NaturalReader can adjust audio pace for different proficiency levels","Classroom practice should reflect how target language speakers communicate in real life","Non-technology-facilitated interaction should be prioritised initially","Teachers can use AI to generate topic-specific vocabulary lists linked to themes","Students can use chatbots to overcome language apprehension (Zhang & Huang, 2024)","AI can be used for games and interactive activities\u2014see ELTcation's AI Toolkit","For languages with limited online representation, consider small language models (SLMs)","Students should reflect on what constitutes adequate language by critically evaluating AI text"]},
+{name:"English A (Literature)",icon:"\u{1F4DA}",color:"#2E75B6",g:["Tasks must go beyond summary\u2014AI generates these instantly","Use AI to explore multiple interpretations, then students construct their own argument","Structure: Claim \u2192 Evidence \u2192 Analysis \u2192 Link (student does all steps)","AI should never produce literary analysis\u2014students must do this themselves","For IO and HL Essay, all interpretation and analysis must be student's own","AI can explore unfamiliar cultural contexts but students must verify and cite","Students can explore different critical lenses (feminist, postcolonial) then apply one themselves","AI reading guides are not a substitute for close reading","When studying world literature, AI may reflect Western-centric interpretations","Use AI to generate practice Paper 1 unseen texts for exam preparation","The learner portfolio must reflect genuine personal engagement over time","AI can identify literary devices but understanding their EFFECT is the student's work","For the IO, students develop their own global issue connection","Write first, then use AI for feedback\u2014never the reverse","Class discussions about texts cannot be replaced by AI"]},
+{name:"English A (Lang & Lit)",icon:"\u{1F4F0}",color:"#4A90D9",g:["AI can present rhetorical strategies but students must develop their OWN analysis","Students should identify audience, purpose, and context independently before consulting AI","AI generates practice Paper 1 non-literary texts but students do the analysis","AI may not capture visual or multimodal elements\u2014students analyse these themselves","Use AI to explore how the same event is reported differently across media sources","The course requires understanding how language constructs meaning\u2014AI demonstrates, students articulate","For the IO, the global issue and analysis of both texts must be entirely the student's own","AI can explain discourse analysis terminology but applying it is the student's work","Students should interrogate AI outputs for bias and framing\u2014applying their own analytical skills","Written tasks must reflect the student's own voice and register choices","AI can suggest text type conventions but the writing must be the student's own","Use AI to compare how language functions across cultures","Evaluating AI-generated text IS a valuable Lang & Lit skill","Encourage analysing AI text AS a text\u2014what choices has the AI made?","The Written Task requires authentic student voice\u2014AI content is detectable"]},
+{name:"Biology",icon:"\u{1F52C}",color:"#3A8F8B",g:["AI explains processes and generates practice problems at different levels","Students must provide step-by-step reasoning, not memorised definitions","Use AI to present claims for students to evaluate, not explain for them","Structure: Define \u2192 Explain \u2192 Apply \u2192 Evaluate","IA: research question, methodology, and analysis must be student's own","AI can generate practice data sets for statistical skills development","Students reconstruct AI explanations in their own words","AI diagrams may contain errors\u2014students should draw their own","For experimental design, students justify WHY each controlled variable matters","Use AI to explore ethical dimensions\u2014builds TOK connections","AI helps prepare for Paper 3 data-based questions","All IA sources must be independently verified","AI may present outdated scientific models\u2014biology evolves rapidly","AI can assist understanding statistical tests but students choose the appropriate one","Use AI to quiz yourself on content, not generate homework answers"]},
+{name:"Chemistry",icon:"\u2697\uFE0F",color:"#D4532B",g:["AI explains mechanisms and molecular geometry but students draw and annotate themselves","For calculations, attempt independently first, then check method with AI","AI often makes errors with complex equations\u2014verify balancing and conditions","IA: research question and experimental design must be student's own","Generate practice questions at different command term levels","AI helps with unfamiliar terminology but conceptual understanding comes from working through problems","Explore real-world applications (pharmaceuticals, materials, energy) for context","For organic chemistry, students must understand electron-level mechanisms","Data analysis and error analysis in the IA must be the student's own","AI may oversimplify equilibrium, kinetics, or thermodynamics","Use AI to practise unit conversions","Ask AI to identify weaknesses in practice answers, not generate model answers","Safety considerations cannot be AI-generated\u2014students apply MSDS information themselves","AI can suggest topic connections for concept mapping","For the IA, the original idea must come from the student's curiosity"]},
+{name:"Physics",icon:"\u269B\uFE0F",color:"#6B5B95",g:["AI explains concepts and derivations but students must reproduce reasoning independently","Attempt problems independently first\u2014AI checks method, not provides solutions","AI may struggle with multi-step problems\u2014don't assume solutions are correct","IA: investigation design, data collection, analysis must be entirely student's own","Explore real-world applications to connect theory to practice","AI generates practice problems with varying difficulty","Use AI to understand graphical relationships and what they reveal about systems","For the IA, AI can help understand theory but the experimental approach must be original","Verify AI explanations against the syllabus\u2014AI may overcomplicate or oversimplify","Develop mathematical fluency: unit analysis, significant figures, uncertainties","Practise explaining physics to non-experts\u2014develops communication skills","AI graphs and visualisations should be verified\u2014create and interpret your own","Demonstrate genuine engagement with apparatus and data collection","AI helps prepare for Paper 3 data analysis questions","Ask AI 'why?' questions rather than 'what?' questions"]},
+{name:"Mathematics",icon:"\u{1F4D0}",color:"#8B4587",g:["Understanding WHY steps work is the learning\u2014not just the answer","Attempt all problems independently first, then check reasoning with AI","AI explores multiple solution methods\u2014student must justify each approach","IA: reasoning, personal engagement, and reflection must be student's own","AI generates practice problems at specific difficulty levels","Use AI to understand proof structures, not generate proofs","The Exploration must be driven by the student's own curiosity","AI solutions may use methods not in the syllabus\u2014ensure appropriate techniques","Explore mathematical modelling scenarios\u2014apply models, evaluate limitations","AI helps visualise functions and transformations\u2014interpretation is student's work","Solve problems without AI in exam conditions\u2014over-reliance harms performance","AI assists checking GDC work but students must use the GDC independently","For statistics, AI generates data sets but students choose correct tests","Explain reasoning in words alongside equations\u2014AI helps develop mathematical communication","When AI provides an unfamiliar method, research and understand it rather than copying"]},
+{name:"Global Politics",icon:"\u{1F30D}",color:"#CC6633",g:["Multiple perspectives are essential\u2014AI presents viewpoints for students to evaluate","Evaluate arguments, identify bias and assumptions, construct own position","Structure: Point \u2192 Example \u2192 Explanation \u2192 Evaluation","Case studies must be independently researched and verified","Engagement Activity: all analysis must be student's own","Explore how political concepts apply to specific case studies","Critically evaluate perspectives from different political traditions","AI may present Western-centric views\u2014actively seek non-Western perspectives","Practise structuring arguments with AI but content comes from own knowledge","AI political analysis may be superficial\u2014go deeper into structural causes","Compare media coverage across countries for critical media literacy","Interrogate AI's presentation of conflicts for neutrality and omission","HL extension topics require sophistication beyond reliable AI output","AI helps identify stakeholders and arguments but engagement must be genuine","Use AI to test your own arguments by generating counter-arguments"]},
+{name:"History",icon:"\u{1F4DC}",color:"#8B6914",g:["Historiographical perspectives must come from real historians with real publications","Students evaluate sources using OPVL\u2014AI explains the framework, students apply it","IA: research question, argument, and analysis must be entirely student's own","AI may present oversimplified or single-perspective narratives","Explore how events are interpreted differently by different historians","AI timelines and summaries are starting points, not substitutes for deep engagement","For Paper 1, develop evaluative skills independently, then use AI for feedback","AI may present anachronistic interpretations\u2014be aware of modern values applied to historical events","Generate practice Paper 2 and 3 questions for exam preparation","Verify all dates, statistics, and factual claims\u2014historical inaccuracies are common in AI","Understand different schools of thought (Marxist, revisionist, feminist, postcolonial)","For document-based questions, students analyse documents themselves","Ask AI to challenge historical arguments\u2014identifies weaknesses before writing","The IA reflection must document genuine intellectual engagement","Explore connections between historical events and contemporary issues"]},
+{name:"Economics",icon:"\u{1F4CA}",color:"#2D8B55",g:["AI explains theory but students apply it with precision and correct terminology","Students draw their own diagrams\u2014AI cannot produce IB-standard economic diagrams","Commentaries: all analysis of real-world articles must be student's own","AI often makes errors with models and diagram analysis\u2014verify accuracy","Explore how policies affect different stakeholders\u2014builds evaluation","Define key terms in own words, not copying AI definitions","Generate practice questions at different command term levels","HL: quantitative methods and calculations must be student's own","AI may not acknowledge competing schools of thought\u2014explore multiple perspectives","Find current real-world examples\u2014but verify and analyse independently","Explain models without AI support\u2014exam conditions require independence","AI helps understand complex concepts but application is student's work","The portfolio must demonstrate own ability to link theory to events","AI may oversimplify market structures\u2014engage with nuances","Challenge economic arguments with AI before submitting\u2014identifies evaluation gaps"]},
+{name:"Psychology",icon:"\u{1F9E0}",color:"#C74B7A",g:["Evaluate studies using specific methodological strengths/limitations, not generic comments","AI explains theories but students apply to specific behaviours independently","IA: experimental design, data analysis, evaluation must be student's own","AI study summaries may contain inaccuracies\u2014verify against original research","Explore ethical considerations in research\u2014builds critical evaluation","Practise IB-style responses without AI, then use AI for feedback","Generate practice SAQs and ERQs at exam standard","For the biological approach, connect neurological processes to behaviour independently","Distinguish correlation from causation\u2014AI may blur this distinction","Explore cross-cultural studies that broaden beyond Western psychology","IA must demonstrate genuine ethical consideration, not AI-generated statements","Compare how different approaches explain the same behaviour","AI may present outdated or debunked theories\u2014verify currency","Go beyond listing to explaining WHY each strength/limitation matters","Explain studies back to AI and ask it to identify errors"]},
+{name:"TOK",icon:"\u{1F914}",color:"#1B1464",g:["Explore claims and counterclaims across AOKs but generate own knowledge questions","AI-generated KQs undermine the entire course\u2014KQs must come from student thinking","TOK Essay: all KQs, claims, analysis, and examples must originate from student","Exhibition: object choice, prompt connection, and commentary must be authentically student's own","AI tests argument strength\u2014ask for counter-arguments to your claims","Interrogate AI outputs as a TOK exercise: what does AI 'know'? How?","Explore how different WOKs lead to different conclusions","Use AI to explore AOK methodologies\u2014supports understanding of disciplinary knowledge","Develop own examples and case studies\u2014AI examples lack authenticity","AI helps understand philosophical concepts but applying them is student's work","Address AI as a knowledge issue: what kind of knowledge does AI produce?","Explore: Does AI know things? Can AI be creative? Is AI output knowledge?","AI demonstrates 'shared knowledge' vs 'personal knowledge' distinction","AI may present false equivalences\u2014evaluate quality of evidence behind viewpoints","Use AI as a case study IN TOK work, not a tool FOR TOK work"]},
+{name:"Extended Essay",icon:"\u{1F4DD}",color:"#2D7D2D",g:["AI can guide and critique but never produce\u2014all writing must be student's own","May use AI to refine RQ, identify argument gaps, explore structures","All writing, research questions, and reflections must be student's own","RPPF must document genuine independent thinking and intellectual growth","Supervisors should discuss AI use explicitly and document conversations","AI helps understand research methodologies but choice must be justified by student","All sources must be independently verified\u2014AI sources may not exist","Use AI to identify argument weaknesses\u2014fix them yourself","AI helps understand formal academic writing conventions","Over-reliance on AI undermines the EE's assessment of independent research","Keep a detailed log of all AI interactions for transparency","AI helps understand assessment criteria but meeting them is student's work","Science EEs: experimental work and data analysis must be genuinely conducted","Humanities EEs: critical analysis must reflect student's own reading and thinking","Use AI to stress-test your thesis before committing to a full draft"]},
+{name:"CAS",icon:"\u{1F4AA}",color:"#E8A317",g:["CAS requires genuine personal engagement\u2014AI cannot substitute for experience","AI cannot reflect on YOUR experiences\u2014no access to your emotions or growth","May use AI to organise portfolio, plan timelines, or brainstorm ideas","All reflections must be authentically student's own\u2014AI reflections are fiction","Research community needs with AI but genuine engagement is required","Explore project management tools and strategies with AI","CAS learning outcomes require evidence of personal growth from genuine experience","AI can help articulate learning but the learning must be real","AI should not replace human collaboration in group CAS projects","Explore global issues connected to service work for deeper understanding","AI-generated evidence of activities is academically dishonest","Reflect on how AI use relates to CAS learning outcomes (ethics, responsibility)","CAS supervisors should discuss AI appropriateness with students","The CAS interview requires speaking authentically about experiences","Consider a handwritten or voice-recorded reflection journal\u2014tech-free reflection has value"]},
+{name:"Arts (Visual/Music/Theatre)",icon:"\u{1F3A8}",color:"#D4532B",g:["AI can inspire but creative work must be authentically student's own","Visual Arts Comparative Study requires genuine analytical engagement","The Process Portfolio documents the student's own creative journey","Music composition must reflect student's own musical ideas and development","AI helps understand theory and techniques but creative application is student's work","Theatre research and creative process must be documented authentically","AI-generated art, music, or scripts are not acceptable as student work","Use AI to research art movements, musical traditions, or theatrical conventions","Understand technical terminology and concepts with AI assistance","Artist statements and programme notes must reflect genuine engagement","Explore connections between work and broader cultural contexts","Critique AI-generated art as an exercise\u2014what does it lack?","Exhibition/Performance: artistic intention and decisions must be student's own","AI can suggest artists or practitioners to study\u2014engage with work independently","The creative process matters as much as the product\u2014AI shortcuts undermine learning"]}
+];
+
+const charter=[
+{n:1,t:"AI is a thinking partner, not a shortcut",d:"If you can't explain what you learned from an AI interaction, you haven't learned anything."},
+{n:2,t:"Think before you prompt",d:"Use LORIE every time. If you can't fill in L and I, you're not ready for AI. Spend 10 minutes independently first."},
+{n:3,t:"Never trust AI at face value",d:"AI can be inaccurate, biased, culturally insensitive, and confidently wrong. It fabricates sources. Always verify."},
+{n:4,t:"Be transparent about AI use",d:"Always acknowledge when and how you used AI. Describe the tool, prompts, and how output influenced your thinking."},
+{n:5,t:"AI cannot write your reflections",d:"Reflections require YOUR thinking about YOUR learning. AI has no access to your experience or growth."},
+{n:6,t:"AI cannot generate your research questions",d:"For assessed work (EE, IA, Engagement Activities), the research question must come from your own inquiry."},
+{n:7,t:"Your ideas matter more than AI's",d:"When everyone uses AI the same way, everyone produces similar ideas (mechanized convergence). Your original thinking is irreplaceable."},
+{n:8,t:"Iterate, don't accept",d:"Never take the first response. Push back, challenge, point out errors. The dialogue IS the learning."},
+{n:9,t:"Document your AI process",d:"Keep a Thinking Log: what you asked, what you got, what you changed and why. This is evidence of growth."},
+{n:10,t:"Know when to put AI away",d:"Some tasks are better without AI. Handwriting, discussion, struggling with problems, reflecting\u2014these need to be tech-free."},
+{n:11,t:"AI output is a starting point, never finished",d:"Anything AI produces must be substantially reworked and verified. If you can't explain every part, it's not your work."},
+{n:12,t:"Respect the learning process",d:"Struggle, confusion, and effort ARE the learning. Bypassing difficulty with AI means bypassing development."},
+{n:13,t:"Use AI to challenge yourself",d:"Ask for counter-arguments, harder questions, alternative perspectives. Don't just confirm what you already think."},
+{n:14,t:"AI doesn't know your context",d:"AI doesn't know your class discussions, teacher's expectations, or personal interests. Only you connect learning to your context."},
+{n:15,t:"Different subjects, different rules",d:"Check specific guidance for each subject. What's acceptable in one context may not be in another. When in doubt, ask."},
+{n:16,t:"You are responsible for everything you submit",d:"Regardless of AI involvement, YOU are responsible for accuracy, quality, and integrity. 'The AI told me' is never an excuse."}
+];
+
+const sections=[
+{id:"home",label:"Home",icon:"\u{1F3E0}"},
+{id:"lorie",label:"LORIE Builder",icon:"\u{1F6E0}"},
+{id:"examples",label:"Examples",icon:"\u{1F4D6}"},
+{id:"frameworks",label:"Frameworks",icon:"\u{1F9ED}"},
+{id:"subjects",label:"Subjects",icon:"\u{1F4DA}"},
+{id:"activities",label:"Activities",icon:"\u{1F3AF}"},
+{id:"integrity",label:"Integrity",icon:"\u2696"},
+{id:"charter",label:"Charter",icon:"\u{1F4DC}"}
+];
+
+const groups=["All","Languages","English A","Sciences","Mathematics","Individuals & Societies","TOK","Extended Essay","CAS","The Arts","MYP"];
+
+function Nav({active,go}){
+return <nav style={{background:NAVY,position:"sticky",top:0,zIndex:100,borderBottom:"3px solid "+AMBER}}>
+<div style={{maxWidth:1200,margin:"0 auto",display:"flex",alignItems:"center",overflowX:"auto"}}>
+<div style={{padding:"12px 20px",fontFamily:PF,color:AMBER,fontWeight:700,fontSize:18,whiteSpace:"nowrap"}}>Genesis College</div>
+{sections.map(s=><div key={s.id} onClick={()=>go(s.id)} style={{background:active===s.id?AMBER:"transparent",color:active===s.id?NAVY:"#ccc",padding:"14px 16px",cursor:"pointer",fontFamily:DS,fontSize:13,fontWeight:active===s.id?700:500,whiteSpace:"nowrap",borderBottom:active===s.id?"3px solid "+AMBER:"3px solid transparent"}}>{s.icon} {s.label}</div>)}
+</div></nav>
+}
+
+function Home({go}){
+const cards=[
+{id:"lorie",icon:"\u{1F6E0}",t:"LORIE Builder",d:"Build prompts step by step.",c:NAVY},
+{id:"examples",icon:"\u{1F4D6}",t:"Examples Library",d:"26+ worked examples across DP & MYP.",c:"#2E75B6"},
+{id:"frameworks",icon:"\u{1F9ED}",t:"Frameworks",d:"AInquiry, MAiLS, AIO Protocol.",c:TEAL},
+{id:"atl",icon:"\u{1F4A1}",t:"ATL & AI",d:"How AI connects to each ATL skill.",c:"#8B4587"},
+{id:"subjects",icon:"\u{1F4DA}",t:"Subject Guide",d:"15 subjects, 15 points each.",c:AMBER},
+{id:"activities",icon:"\u{1F3AF}",t:"Activities",d:"16 classroom activities.",c:"#CC6633"},
+{id:"journal",icon:"\u{1F4D3}",t:"Reflection Journal",d:"Log your AI interactions.",c:TEAL},
+{id:"evaluator",icon:"\u2705",t:"Task Evaluator",d:"Teachers: check task readiness.",c:"#2D7D2D"},
+{id:"integrity",icon:"\u2696",t:"Integrity Matrix",d:"Green/amber/red framework.",c:"#CC3333"},
+{id:"charter",icon:"\u{1F4DC}",t:"Student Charter",d:"16 principles for AI use.",c:NAVY},
+{id:"faq",icon:"\u2753",t:"FAQ",d:"Students, teachers & parents.",c:AMBER}
+];
+return <div>
+<div style={{background:"linear-gradient(135deg,"+NAVY+",#2a2080,"+NAVY+")",padding:"60px 20px 80px",textAlign:"center"}}>
+<img src="logo.png" alt="Genesis College - IB World School" style={{height:70,marginBottom:30}}/>
+<h1 style={{fontFamily:PF,color:"#fff",fontSize:"clamp(32px,5vw,56px)",lineHeight:1.15}}>Using AI with <span style={{color:AMBER}}>Integrity</span></h1>
+<p style={{color:"#ffffffcc",fontFamily:DS,fontSize:"clamp(16px,2.2vw,22px)",maxWidth:700,margin:"20px auto 0",lineHeight:1.6}}>A comprehensive guide for educators and students at Genesis College</p>
+</div>
+<div style={{maxWidth:1000,margin:"0 auto",padding:"40px 20px"}}>
+<div style={{background:"linear-gradient(135deg,"+CREAM+",#fff)",border:"2px solid "+AMBER+"40",borderRadius:16,padding:32,marginBottom:32,borderLeft:"6px solid "+AMBER}}>
+<p style={{fontFamily:PF,fontSize:22,color:NAVY,lineHeight:1.6,margin:"0 0 12px"}}>"AI should scaffold thinking, never replace it. If a student can't explain what they learned from an AI interaction, the tool has interrupted their learning\u2014not supported it."</p>
+<p style={{fontFamily:DS,fontSize:14,color:"#888",margin:0,textAlign:"right"}}>\u2014 AI for Genesis, 2026</p>
+</div>
+<h2 style={{fontFamily:PF,color:NAVY,fontSize:28,marginBottom:24}}>Explore the Guide</h2>
+<div style={{display:"grid",gridTemplateColumns:"repeat(auto-fit,minmax(280px,1fr))",gap:16}}>
+{cards.map(c=><div key={c.id} onClick={()=>go(c.id)} style={{background:"#fff",border:"1px solid #e0e0e0",borderRadius:12,padding:24,cursor:"pointer",borderTop:"4px solid "+c.c}}>
+<div style={{fontSize:32,marginBottom:8}}>{c.icon}</div>
+<div style={{fontFamily:DS,fontWeight:700,color:NAVY,fontSize:17,marginBottom:8}}>{c.t}</div>
+<div style={{fontFamily:DS,color:"#666",fontSize:14,lineHeight:1.5}}>{c.d}</div>
+</div>)}
+</div></div></div>
+}
+
+function LorieBuilder(){
+const[v,setV]=useState({L:"",O:"",R:"",I:"",E:""});
+const filled=Object.values(v).filter(x=>x.trim()).length;
+const ready=v.L.trim()&&v.I.trim();
+const assembled=[v.I.trim()&&"Context: "+v.I.trim(),v.L.trim()&&"Learning goal: "+v.L.trim(),v.R.trim()&&"Perspective: "+v.R.trim(),v.O.trim()&&"What I need: "+v.O.trim(),v.E.trim()&&"Quality criteria: "+v.E.trim()].filter(Boolean).join("\n\n");
+return <div style={{maxWidth:1000,margin:"0 auto",padding:"40px 20px"}}>
+<h1 style={{fontFamily:PF,color:NAVY,fontSize:36,marginBottom:8}}>LORIE Prompt Builder</h1>
+<p style={{fontFamily:DS,color:"#666",fontSize:16,marginBottom:32,lineHeight:1.6}}>Fill in each element. If you can't fill <strong>L</strong> and <strong>I</strong>, you're not ready for AI yet.</p>
+<div style={{display:"flex",gap:8,marginBottom:24,flexWrap:"wrap",alignItems:"center"}}>
+{lorieFields.map(f=><div key={f.key} style={{width:40,height:40,borderRadius:"50%",background:v[f.key].trim()?f.color:"#ddd",color:"#fff",display:"flex",alignItems:"center",justifyContent:"center",fontWeight:800,fontFamily:DS,fontSize:18}}>{f.key}</div>)}
+<div style={{marginLeft:"auto",fontFamily:DS,fontSize:14,color:filled===5?"#2D7D2D":"#999",fontWeight:600}}>{filled}/5</div>
+</div>
+{lorieFields.map(f=><div key={f.key} style={{background:"#fff",border:"2px solid #e8e8e8",borderRadius:12,padding:20,marginBottom:16,borderLeft:"6px solid "+f.color}}>
+<div style={{display:"flex",alignItems:"center",gap:12,marginBottom:10}}>
+<span style={{background:f.color,color:"#fff",width:32,height:32,borderRadius:8,display:"flex",alignItems:"center",justifyContent:"center",fontWeight:800,fontFamily:DS,fontSize:16}}>{f.key}</span>
+<span style={{fontFamily:DS,fontWeight:700,color:NAVY,fontSize:16}}>{f.label}</span>
+{(f.key==="L"||f.key==="I")&&<span style={{background:ROSE,color:"#CC3333",fontSize:11,fontWeight:700,padding:"2px 8px",borderRadius:4,fontFamily:DS}}>REQUIRED</span>}
+</div>
+<p style={{fontFamily:DS,color:"#888",fontSize:13,margin:"0 0 8px",lineHeight:1.5}}>{f.tip}</p>
+<textarea value={v[f.key]} onChange={e=>setV({...v,[f.key]:e.target.value})} placeholder={f.prompt} rows={3} style={{width:"100%",border:"1px solid #e0e0e0",borderRadius:8,padding:12,fontFamily:DS,fontSize:14,resize:"vertical",outline:"none",boxSizing:"border-box",lineHeight:1.6}}/>
+</div>)}
+{assembled&&<div style={{marginTop:24}}>
+<div style={{display:"flex",justifyContent:"space-between",marginBottom:12}}>
+<h3 style={{fontFamily:DS,color:NAVY,fontSize:18,margin:0}}>Your Assembled Prompt</h3>
+{!ready&&<span style={{fontFamily:DS,fontSize:13,color:"#CC3333",fontWeight:600}}>Fill in L and I first</span>}
+{ready&&<span style={{fontFamily:DS,fontSize:13,color:"#2D7D2D",fontWeight:600}}>Ready to use</span>}
+</div>
+<div style={{background:ready?"#f8fdf8":ROSE,border:"1px solid "+(ready?"#cce8cc":"#ffcccc"),borderRadius:12,padding:20,fontFamily:DM,fontSize:14,lineHeight:1.8,whiteSpace:"pre-wrap",color:DK}}>{assembled}</div>
+</div>}
+</div>
+}
+
+function Examples(){
+const[sel,setSel]=useState(0);
+const[filt,setFilt]=useState("All");
+const filtered=filt==="All"?lorieExamples:lorieExamples.filter(e=>e.group===filt);
+const safe=Math.min(sel,filtered.length-1);
+const ex=filtered[safe];
+if(!ex) return <div style={{maxWidth:1000,margin:"0 auto",padding:"40px 20px"}}><h1 style={{fontFamily:PF,color:NAVY}}>No examples for this filter.</h1></div>;
+return <div style={{maxWidth:1100,margin:"0 auto",padding:"40px 20px"}}>
+<h1 style={{fontFamily:PF,color:NAVY,fontSize:36,marginBottom:8}}>LORIE Examples Library</h1>
+<p style={{fontFamily:DS,color:"#666",fontSize:16,marginBottom:20}}><strong>{lorieExamples.length} examples</strong> across DP and MYP. Filter by group, click to view.</p>
+<div style={{display:"flex",gap:6,flexWrap:"wrap",marginBottom:20}}>
+{groups.map(g=><div key={g} onClick={()=>{setFilt(g);setSel(0)}} style={{background:filt===g?AMBER:"#fff",color:filt===g?"#fff":"#666",border:"1px solid "+(filt===g?AMBER:"#ddd"),borderRadius:20,padding:"6px 14px",cursor:"pointer",fontFamily:DS,fontSize:13,fontWeight:filt===g?700:500}}>{g}</div>)}
+</div>
+<div style={{display:"flex",gap:20,alignItems:"flex-start",flexWrap:"wrap"}}>
+<div style={{width:260,minWidth:200,display:"flex",flexDirection:"column",gap:6}}>
+{filtered.map((item,i)=><div key={i} onClick={()=>setSel(i)} style={{background:safe===i?NAVY:"#fff",color:safe===i?"#fff":DK,border:"1px solid "+(safe===i?NAVY:"#e0e0e0"),borderRadius:10,padding:"12px 14px",cursor:"pointer",fontFamily:DS}}>
+<div style={{display:"flex",alignItems:"center",gap:8}}>
+<span style={{fontSize:18}}>{item.icon}</span>
+<div><div style={{fontSize:13,fontWeight:700}}>{item.subject}</div>
+<div style={{fontSize:11,color:safe===i?"#ffffffaa":"#999",marginTop:2}}>{item.task}</div></div>
+</div></div>)}
+</div>
+<div style={{flex:1,minWidth:300,background:"#fff",borderRadius:16,border:"1px solid #e0e0e0",overflow:"hidden"}}>
+<div style={{background:NAVY,padding:"20px 24px"}}>
+<div style={{fontFamily:DS,color:AMBER,fontSize:14,fontWeight:600,marginBottom:4}}>{ex.subject}</div>
+<div style={{fontFamily:PF,color:"#fff",fontSize:22}}>{ex.task}</div>
+</div>
+<div style={{padding:24,display:"grid",gap:14}}>
+{lorieFields.map(f=><div key={f.key} style={{display:"flex",gap:12}}>
+<span style={{background:f.color,color:"#fff",minWidth:30,height:30,borderRadius:8,display:"flex",alignItems:"center",justifyContent:"center",fontWeight:800,fontFamily:DS,fontSize:14,flexShrink:0}}>{f.key}</span>
+<div><div style={{fontFamily:DS,fontWeight:700,color:NAVY,fontSize:13,marginBottom:3}}>{f.label}</div>
+<div style={{fontFamily:DS,color:DK,fontSize:14,lineHeight:1.6}}>{ex[f.key]}</div></div>
+</div>)}
+</div>
+<div style={{borderTop:"1px solid #e8e8e8",padding:"16px 24px",background:"#fafbfc"}}>
+<h4 style={{fontFamily:DS,color:NAVY,margin:"0 0 10px",fontSize:14}}>Assembled Prompt</h4>
+<div style={{background:"#fff",border:"1px solid #e0e0e0",borderRadius:10,padding:14,fontFamily:DM,fontSize:12,lineHeight:1.8,whiteSpace:"pre-wrap",color:DK,maxHeight:200,overflowY:"auto"}}>{ex.assembled}</div>
+</div>
+</div></div></div>
+}
+
+function Frameworks(){
+const[tab,setTab]=useState("ainquiry");
+const tabs=[{id:"ainquiry",l:"AInquiry"},{id:"mails",l:"MAiLS"},{id:"aio",l:"AIO Protocol"},{id:"offload",l:"Cognitive Offloading"}];
+const aq=[{l:"Iterate",c:NAVY,i:"\u{1F504}",d:"Commit to multiple iterations. A single prompt-response is not inquiry.",q:"Did I refine my prompt at least twice?"},
+{l:"Question",c:"#2E75B6",i:"\u2753",d:"Create questions of increasing complexity. Start with what you know.",q:"Are my questions getting more specific?"},
+{l:"Debunk",c:TEAL,i:"\u{1F50D}",d:"Correct AI information. Ensure outputs are authentic and accurate.",q:"Have I verified every fact?"},
+{l:"Collaborate",c:AMBER,i:"\u{1F91D}",d:"Connect with humans to check data and test ideas. AI is one voice.",q:"Have I discussed this with a peer or teacher?"}];
+return <div style={{maxWidth:1000,margin:"0 auto",padding:"40px 20px"}}>
+<h1 style={{fontFamily:PF,color:NAVY,fontSize:36,marginBottom:24}}>Frameworks for AI in Learning</h1>
+<div style={{display:"flex",gap:4,marginBottom:32,background:LIGHT,borderRadius:12,padding:4}}>
+{tabs.map(t=><div key={t.id} onClick={()=>setTab(t.id)} style={{flex:1,background:tab===t.id?"#fff":"transparent",padding:"12px 8px",borderRadius:10,cursor:"pointer",fontFamily:DS,fontSize:14,fontWeight:tab===t.id?700:500,color:tab===t.id?NAVY:"#888",textAlign:"center",boxShadow:tab===t.id?"0 2px 8px rgba(0,0,0,0.08)":"none"}}>{t.l}</div>)}
+</div>
+{tab==="ainquiry"&&<div style={{display:"grid",gap:16}}>
+<p style={{fontFamily:DS,color:"#666",fontSize:15,lineHeight:1.7}}>The IB's AInquiry framework (2025) treats AI interaction as inquiry. Four components in any order:</p>
+{aq.map(a=><div key={a.l} style={{background:"#fff",border:"1px solid #e0e0e0",borderRadius:14,padding:24,borderLeft:"6px solid "+a.c,display:"flex",gap:20}}>
+<div style={{fontSize:36}}>{a.i}</div>
+<div style={{flex:1}}>
+<h3 style={{fontFamily:DS,color:a.c,margin:"0 0 8px",fontSize:20,fontWeight:700}}>{a.l}</h3>
+<p style={{fontFamily:DS,color:DK,margin:"0 0 12px",fontSize:15,lineHeight:1.6}}>{a.d}</p>
+<div style={{background:LIGHT,borderRadius:8,padding:"10px 14px",fontFamily:DS,fontSize:13,color:NAVY,fontWeight:600}}>Self-check: {a.q}</div>
+</div></div>)}
+</div>}
+{tab==="mails"&&<div>
+<p style={{fontFamily:DS,color:"#666",fontSize:15,lineHeight:1.7,marginBottom:24}}>The MAiLS helps decide if AI is helping or harming learning. Higher = greater risk to student agency.</p>
+<div style={{display:"flex",gap:4,marginBottom:24}}>
+{[{l:"Pencil",v:"Low",bg:"#E8F4E8"},{l:"Video call",v:"Low",bg:"#E8F4E8"},{l:"Video game",v:"Equal",bg:GOLD},{l:"Intelligent tutor",v:"Equal",bg:"#FFF0E0"},{l:"Chatbot",v:"High",bg:ROSE}].map((t,i)=><div key={i} style={{flex:1,background:t.bg,borderRadius:12,padding:"20px 8px",textAlign:"center"}}>
+<div style={{fontFamily:DS,fontWeight:700,fontSize:13,color:NAVY}}>{t.l}</div>
+<div style={{fontFamily:DS,fontSize:12,color:"#888",marginTop:4}}>{t.v} agency</div>
+</div>)}
+</div>
+<div style={{background:CREAM,border:"2px solid "+AMBER+"40",borderRadius:12,padding:20}}>
+<p style={{fontFamily:DS,color:NAVY,fontWeight:700,margin:"0 0 8px",fontSize:15}}>Teacher Decision Point</p>
+<p style={{fontFamily:DS,color:DK,margin:0,fontSize:14,lineHeight:1.6}}>High MAiLS? Redesign with AInquiry or choose a lower tool. Explain why to students\u2014builds metacognition.</p>
+</div></div>}
+{tab==="aio"&&<div>
+<p style={{fontFamily:DS,color:"#666",fontSize:15,lineHeight:1.7,marginBottom:24}}>The AIO protocol structures AI engagement at Genesis College, mapped to LORIE:</p>
+{[{p:"AWARENESS",c:"#2D7D2D",bg:"#E8F4E8",d:"Diagnose understanding. Identify what you know and where gaps are. BEFORE AI.",lr:"L + I",r:"AI may help identify gaps after your own assessment."},
+{p:"IDEAS",c:AMBER,bg:GOLD,d:"Explore perspectives and approaches. AI can generate alternatives and challenge assumptions.",lr:"O + R",r:"AI permitted here. Student evaluates and selects."},
+{p:"OUTCOMES",c:"#8B4587",bg:"#F0E8F5",d:"Produce your own work demonstrating YOUR understanding.",lr:"E",r:"AI NOT permitted. This is the student's work."}
+].map(p=><div key={p.p} style={{background:p.bg,borderRadius:14,padding:24,marginBottom:16,border:"1px solid "+p.c+"30"}}>
+<h3 style={{fontFamily:DS,color:p.c,margin:"0 0 8px",fontSize:22,fontWeight:800}}>{p.p}</h3>
+<p style={{fontFamily:DS,color:DK,margin:"0 0 12px",fontSize:15,lineHeight:1.6}}>{p.d}</p>
+<div style={{display:"flex",gap:12,flexWrap:"wrap"}}>
+<span style={{background:"#fff",borderRadius:8,padding:"6px 12px",fontFamily:DS,fontSize:13,color:NAVY,fontWeight:600}}>LORIE: {p.lr}</span>
+<span style={{background:"#fff",borderRadius:8,padding:"6px 12px",fontFamily:DS,fontSize:13,color:p.c,fontWeight:600}}>{p.r}</span>
+</div></div>)}
+</div>}
+{tab==="offload"&&<div>
+<p style={{fontFamily:DS,color:"#666",fontSize:15,lineHeight:1.7,marginBottom:24}}>The IB distinguishes helpful offloading from harmful task replacement:</p>
+<div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:16,marginBottom:24}}>
+<div style={{background:"#E8F4E8",borderRadius:14,padding:24}}>
+<h3 style={{fontFamily:DS,color:"#2D7D2D",margin:"0 0 12px",fontSize:18}}>Cognitive Offloading</h3>
+<p style={{fontFamily:DS,fontSize:14,color:DK,lineHeight:1.6}}>Tools help remember, write efficiently, extend abilities. Student does intellectual work.</p>
+<div style={{marginTop:12,fontFamily:DS,fontSize:13,color:"#555"}}>{"Calculator in physics \u2022 Speech-to-text \u2022 Grammar checker on YOUR draft \u2022 AI feedback on YOUR writing"}</div>
+</div>
+<div style={{background:ROSE,borderRadius:14,padding:24}}>
+<h3 style={{fontFamily:DS,color:"#CC3333",margin:"0 0 12px",fontSize:18}}>Task Replacement</h3>
+<p style={{fontFamily:DS,fontSize:14,color:DK,lineHeight:1.6}}>AI replaces a task that IS the learning. Gives information student didn't develop. Interrupts learning.</p>
+<div style={{marginTop:12,fontFamily:DS,fontSize:13,color:"#555"}}>{"AI writes the essay \u2022 AI generates RQ \u2022 AI produces analysis \u2022 AI writes reflections"}</div>
+</div></div>
+<div style={{background:CREAM,border:"2px solid "+AMBER+"40",borderRadius:12,padding:20}}>
+<p style={{fontFamily:DS,color:NAVY,fontWeight:700,margin:"0 0 8px"}}>Mechanized Convergence</p>
+<p style={{fontFamily:DS,color:DK,margin:0,fontSize:14,lineHeight:1.6}}>When 25 students use the same AI, you get 25 similar responses. Always require independent thinking BEFORE AI.</p>
+</div></div>}
+</div>
+}
+
+function Subjects(){
+const[sel,setSel]=useState(0);
+const s=subjectData[sel];
+return <div style={{maxWidth:1000,margin:"0 auto",padding:"40px 20px"}}>
+<h1 style={{fontFamily:PF,color:NAVY,fontSize:36,marginBottom:24}}>Subject-Specific Guidance</h1>
+<div style={{display:"flex",gap:8,flexWrap:"wrap",marginBottom:24}}>
+{subjectData.map((s,i)=><div key={i} onClick={()=>setSel(i)} style={{background:sel===i?s.color:"#fff",color:sel===i?"#fff":s.color,border:"2px solid "+s.color,borderRadius:10,padding:"8px 16px",cursor:"pointer",fontFamily:DS,fontSize:14,fontWeight:600}}>{s.icon} {s.name}</div>)}
+</div>
+<div style={{background:"#fff",borderRadius:16,border:"2px solid "+s.color+"30",overflow:"hidden"}}>
+<div style={{background:s.color,padding:"24px 28px"}}>
+<h2 style={{fontFamily:PF,color:"#fff",margin:0,fontSize:26}}>{s.icon} {s.name}</h2>
+</div>
+<div style={{padding:28}}>
+{s.g.map((g,i)=><div key={i} style={{display:"flex",gap:12,marginBottom:16}}>
+<div style={{minWidth:8,height:8,borderRadius:"50%",background:s.color,marginTop:7,flexShrink:0}}/>
+<p style={{fontFamily:DS,color:DK,fontSize:15,lineHeight:1.6,margin:0}}>{g}</p>
+</div>)}
+</div></div></div>
+}
+
+function Activities(){
+const[open,setOpen]=useState(null);
+return <div style={{maxWidth:1000,margin:"0 auto",padding:"40px 20px"}}>
+<h1 style={{fontFamily:PF,color:NAVY,fontSize:36,marginBottom:8}}>Classroom-Ready Activities</h1>
+<p style={{fontFamily:DS,color:"#666",fontSize:15,marginBottom:32,lineHeight:1.6}}>16 activities with AInquiry alignment. Click to expand.</p>
+<div style={{display:"grid",gap:12}}>
+{activities.map((a,i)=><div key={i} style={{background:"#fff",borderRadius:14,border:open===i?"2px solid "+NAVY:"1px solid #e0e0e0",overflow:"hidden"}}>
+<div onClick={()=>setOpen(open===i?null:i)} style={{padding:"20px 24px",cursor:"pointer",display:"flex",alignItems:"center",justifyContent:"space-between",userSelect:"none"}}>
+<div style={{flex:1}}>
+<div style={{fontFamily:DS,fontWeight:700,color:NAVY,fontSize:17}}>{a.name}</div>
+<div style={{display:"flex",gap:8,marginTop:8,flexWrap:"wrap"}}>
+<span style={{background:LIGHT,borderRadius:6,padding:"4px 10px",fontFamily:DS,fontSize:12,color:"#666"}}>{"⏱ "+a.time}</span>
+<span style={{background:MINT,borderRadius:6,padding:"4px 10px",fontFamily:DS,fontSize:12,color:TEAL,fontWeight:600}}>{a.fw}</span>
+<span style={{background:GOLD,borderRadius:6,padding:"4px 10px",fontFamily:DS,fontSize:12,color:"#B8860B",fontWeight:600}}>{a.atl}</span>
+</div></div>
+<div style={{fontSize:18,color:"#999",marginLeft:16,transform:open===i?"rotate(180deg)":"none",transition:"transform 0.2s"}}>{"\u25BC"}</div>
+</div>
+{open===i&&<div style={{padding:"0 24px 24px",borderTop:"1px solid #eee"}}>
+<p style={{fontFamily:DS,color:DK,fontSize:15,lineHeight:1.7,marginTop:16}}>{a.desc}</p>
+<div style={{background:MINT,borderRadius:10,padding:16,marginTop:12,borderLeft:"4px solid "+TEAL}}>
+<div style={{fontFamily:DS,fontWeight:700,fontSize:13,color:TEAL}}>Extension:</div>
+<p style={{fontFamily:DS,color:DK,fontSize:14,lineHeight:1.6,margin:"6px 0 0"}}>{a.ext}</p>
+</div></div>}
+</div>)}
+</div></div>
+}
+
+function Integrity(){
+const cols=[
+{l:"Acceptable",c:"#2D7D2D",bg:"#E8F4E8",mark:"\u2713",items:["Brainstorming (then researching independently)","Practising conversation with a chatbot","Checking grammar/spelling","Generating practice questions","Getting feedback on YOUR draft","Slowing audio pace","Generating vocabulary lists","Exploring perspectives on a topic"]},
+{l:"Caution Zone",c:"#B8860B",bg:GOLD,mark:"\u26A0",items:["Generating an outline (must rework substantially)","Using AI to explain a concept (must verify & extend)","Suggesting sources (must locate & verify each)","Identifying argument weaknesses (must fix yourself)","Generating visual stimuli (must verify cultural accuracy)"]},
+{l:"Not Acceptable",c:"#CC3333",bg:ROSE,mark:"\u2717",items:["Submitting AI text as your own","AI writing essays, reflections, or assessments","Generating research questions for assessed work","Failing to acknowledge AI use","AI during exams (unless permitted)","AI writing CAS reflections or RPPF","Copying AI analysis without reconstruction"]}
+];
+return <div style={{maxWidth:1000,margin:"0 auto",padding:"40px 20px"}}>
+<h1 style={{fontFamily:PF,color:NAVY,fontSize:36,marginBottom:24}}>Academic Integrity and AI</h1>
+<div style={{display:"grid",gridTemplateColumns:"1fr 1fr 1fr",gap:16,marginBottom:32}}>
+{cols.map(col=><div key={col.l} style={{background:col.bg,borderRadius:14,padding:20}}>
+<h3 style={{fontFamily:DS,color:col.c,margin:"0 0 16px",fontSize:18,fontWeight:800,textAlign:"center"}}>{col.l}</h3>
+{col.items.map((item,i)=><div key={i} style={{display:"flex",gap:8,marginBottom:10}}>
+<span style={{color:col.c,fontSize:12,marginTop:4}}>{col.mark}</span>
+<span style={{fontFamily:DS,fontSize:14,color:DK,lineHeight:1.5}}>{item}</span>
+</div>)}
+</div>)}
+</div>
+<div style={{background:CREAM,border:"2px solid "+AMBER+"40",borderRadius:14,padding:24,textAlign:"center"}}>
+<p style={{fontFamily:PF,color:NAVY,fontSize:20,margin:0,lineHeight:1.6}}><strong>The Ownership Test:</strong> Could you explain the thinking that led to your work? Could you defend your ideas with your teacher? If not, AI has done too much.</p>
+</div></div>
+}
+
+function Charter(){
+return <div style={{maxWidth:1000,margin:"0 auto",padding:"40px 20px"}}>
+<h1 style={{fontFamily:PF,color:NAVY,fontSize:36,marginBottom:24}}>Student Charter for AI Use</h1>
+<div style={{display:"grid",gap:12}}>
+{charter.map(p=><div key={p.n} style={{background:"#fff",borderRadius:14,border:"1px solid #e0e0e0",padding:"20px 24px",display:"flex",gap:20}}>
+<div style={{minWidth:44,height:44,borderRadius:"50%",background:NAVY,color:AMBER,display:"flex",alignItems:"center",justifyContent:"center",fontFamily:PF,fontWeight:800,fontSize:20}}>{p.n}</div>
+<div><h3 style={{fontFamily:DS,color:NAVY,margin:"0 0 6px",fontSize:17,fontWeight:700}}>{p.t}</h3>
+<p style={{fontFamily:DS,color:"#555",margin:0,fontSize:15,lineHeight:1.6}}>{p.d}</p>
+</div></div>)}
+</div></div>
+}
+
+
+function ATLExplorer(){
+const[sel,setSel]=useState(0);const a=atlData[sel];
+return <div style={{maxWidth:900,margin:"0 auto",padding:"32px 20px"}}>
+<h1 style={{fontFamily:PF,color:NAVY,fontSize:32,marginBottom:20}}>ATL Skills & AI</h1>
+<div style={{display:"flex",gap:8,flexWrap:"wrap",marginBottom:20}}>
+{atlData.map((s,i)=><div key={i} onClick={()=>setSel(i)} style={{background:sel===i?s.color:"#fff",color:sel===i?"#fff":s.color,border:"2px solid "+s.color,borderRadius:10,padding:"8px 14px",cursor:"pointer",fontFamily:DS,fontSize:13,fontWeight:600}}>{s.icon} {s.name}</div>)}
+</div>
+<div style={{background:"#fff",borderRadius:14,border:"2px solid "+a.color+"30",overflow:"hidden"}}>
+<div style={{background:a.color,padding:"20px 24px",display:"flex",justifyContent:"space-between",alignItems:"center"}}>
+<h2 style={{fontFamily:DS,color:"#fff",margin:0,fontSize:22}}>{a.icon} {a.name}</h2>
+<span style={{background:"#ffffff30",padding:"4px 12px",borderRadius:20,fontFamily:DS,fontSize:13,fontWeight:700,color:"#fff"}}>Risk: {a.risk}</span>
+</div>
+<div style={{padding:24,display:"grid",gap:16}}>
+<div style={{background:"#E8F4E8",borderRadius:10,padding:16}}><h4 style={{fontFamily:DS,color:"#2D7D2D",margin:"0 0 6px",fontSize:14}}>Opportunity</h4><p style={{fontFamily:DS,color:DK,margin:0,fontSize:14,lineHeight:1.6}}>{a.opp}</p></div>
+<div style={{background:ROSE,borderRadius:10,padding:16}}><h4 style={{fontFamily:DS,color:"#CC3333",margin:"0 0 6px",fontSize:14}}>Danger</h4><p style={{fontFamily:DS,color:DK,margin:0,fontSize:14,lineHeight:1.6}}>{a.danger}</p></div>
+<div style={{background:LIGHT,borderRadius:10,padding:16}}><h4 style={{fontFamily:DS,color:NAVY,margin:"0 0 6px",fontSize:14}}>Mitigation</h4><p style={{fontFamily:DS,color:DK,margin:0,fontSize:14,lineHeight:1.6}}>{a.action}</p></div>
+</div></div></div>
+}
+
+function Journal(){
+const[entries,setEntries]=useState([]);
+const[form,setForm]=useState({task:"",question:"",knew:"",learned:"",changed:""});
+const add=()=>{if(form.task.trim()&&form.question.trim()){setEntries([{...form,date:new Date().toLocaleDateString(),id:Date.now()},...entries]);setForm({task:"",question:"",knew:"",learned:"",changed:""})}};
+return <div style={{maxWidth:900,margin:"0 auto",padding:"32px 20px"}}>
+<h1 style={{fontFamily:PF,color:NAVY,fontSize:32,marginBottom:8}}>AI Reflection Journal</h1>
+<p style={{fontFamily:DS,color:"#666",fontSize:14,marginBottom:24}}>Log every AI interaction. Builds metacognitive habits and evidence of engagement.</p>
+<div style={{background:"#fff",borderRadius:14,border:"2px solid "+TEAL+"40",padding:24,marginBottom:24}}>
+{[{k:"task",l:"What task?",p:"e.g., Biology IA draft"},{k:"question",l:"What did you ask AI?",p:"Your prompt"},{k:"knew",l:"What did you already know?",p:"Existing knowledge"},{k:"learned",l:"What did you learn?",p:"New insights"},{k:"changed",l:"What did you change and why?",p:"Corrections, adaptations"}].map(f=><div key={f.k} style={{marginBottom:12}}>
+<label style={{fontFamily:DS,fontWeight:700,color:NAVY,fontSize:13,display:"block",marginBottom:3}}>{f.l}</label>
+<textarea value={form[f.k]} onChange={e=>setForm({...form,[f.k]:e.target.value})} placeholder={f.p} rows={2} style={{width:"100%",border:"1px solid #ddd",borderRadius:8,padding:10,fontFamily:DS,fontSize:13,resize:"vertical",boxSizing:"border-box"}}/>
+</div>)}
+<div onClick={add} style={{background:TEAL,color:"#fff",padding:"10px 24px",borderRadius:8,fontFamily:DS,fontWeight:700,fontSize:14,cursor:"pointer",display:"inline-block"}}>Save Entry</div>
+</div>
+{entries.length>0&&<h3 style={{fontFamily:DS,color:NAVY,marginBottom:12}}>Your Entries ({entries.length})</h3>}
+{entries.map(e=><div key={e.id} style={{background:"#fff",borderRadius:10,border:"1px solid #e0e0e0",padding:16,marginBottom:10}}>
+<div style={{fontFamily:DS,fontSize:11,color:"#999",marginBottom:8}}>{e.date} \u2014 {e.task}</div>
+<div style={{fontFamily:DS,fontSize:13,color:DK,lineHeight:1.5}}><strong>Asked:</strong> {e.question}<br/><strong>Knew:</strong> {e.knew}<br/><strong>Learned:</strong> {e.learned}<br/><strong>Changed:</strong> {e.changed}</div>
+</div>)}
+</div>
+}
+
+function TaskEvaluator(){
 const checks=[
 {q:"Task requires independent thinking BEFORE AI?",cat:"AInquiry"},
 {q:"Can be completed with a single prompt?",cat:"AInquiry",warn:true},
